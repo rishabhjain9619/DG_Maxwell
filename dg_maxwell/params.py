@@ -11,13 +11,6 @@ device = 0
 af.set_backend(backend)
 af.set_device(device)
 
-from dg_maxwell import lagrange
-from dg_maxwell import isoparam
-from dg_maxwell import utils
-from dg_maxwell import msh_parser
-from dg_maxwell import wave_equation
-from dg_maxwell import wave_equation_2d
-
 # The domain of the function.
 x_nodes    = af.np_to_af_array(np.array([-1., 1.]))
 
@@ -72,3 +65,44 @@ mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'
 total_time_2d = 2.0
 
 volume_integrand_scheme_2d = 'Lobatto'
+
+
+# Periodic boundary conditions
+
+#                                left   right
+vertical_boundary_elements_pbc = [[0 ,  184],
+                                  [10,  194],
+                                  [20,  204],
+                                  [30,  214],
+                                  [40,  224],
+                                  [50,  174],
+                                  [60,  164],
+                                  [70,  154],
+                                  [80,  144],
+                                  [90,  134],
+                                  [100, 124]]
+vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
+
+#                                    Top  Bottom
+horizontal_boundary_elements_pbc = [[  0, 100],
+                                    [  1, 101],
+                                    [  2, 102],
+                                    [  3, 103],
+                                    [  4, 104],
+                                    [  5, 105],
+                                    [  6, 106],
+                                    [  7, 107],
+                                    [  8, 108],
+                                    [  9, 109],
+                                    [225, 110],
+                                    [175, 115],
+                                    [176, 116],
+                                    [177, 117],
+                                    [178, 118],
+                                    [179, 119],
+                                    [180, 120],
+                                    [181, 121],
+                                    [182, 122],
+                                    [183, 123],
+                                    [184, 124]]
+horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)

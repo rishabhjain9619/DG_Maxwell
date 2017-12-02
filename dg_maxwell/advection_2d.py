@@ -20,8 +20,8 @@ from dg_maxwell import utils
 def A_matrix(advec_var):
     '''
     '''
-
-    A_ij = wave_equation_2d.A_matrix(params.N_LGL, advec_var) / 100
+    jacobian = 100.
+    A_ij = wave_equation_2d.A_matrix(params.N_LGL, advec_var) / jacobian
 
     return A_ij
 
@@ -40,9 +40,13 @@ def volume_integral(u, advec_var):
     if (params.volume_integrand_scheme_2d == 'Lobatto' and params.N_LGL == params.N_quad):
         w_i = af.flat(af.transpose(af.tile(advec_var.lobatto_weights_quadrature, 1, params.N_LGL)))
         w_j = af.tile(advec_var.lobatto_weights_quadrature, params.N_LGL)
-        wi_wj_dLp_xi = af.broadcast(utils.multiply, w_i * w_j, advec_var.dLp_Lq)
-        volume_integrand_ij_1_sp = c_x * dxi_dx * af.broadcast(utils.multiply,\
-                                               wi_wj_dLp_xi, u) / jacobian
+        wi_wj = w_i * w_j
+        wi_wj_dLp_xi = af.broadcast(utils.multiply, wi_wj, advec_var.dLp_Lq)
+        
+        volume_integrand_ij_1_sp = c_x * dxi_dx * af.broadcast(utils.multiply,
+                                                               wi_wj_dLp_xi,
+                                                               u) \
+                                 / jacobian
         wi_wj_dLq_eta = af.broadcast(utils.multiply, w_i * w_j, advec_var.dLq_Lp)
         volume_integrand_ij_2_sp = c_y * deta_dy * af.broadcast(utils.multiply,\
                                                wi_wj_dLq_eta, u) / jacobian
@@ -69,6 +73,7 @@ def volume_integral(u, advec_var):
         volume_integral        = af.transpose(af.moddims(volume_integrand_total, 100, params.N_LGL ** 2))
 
     return volume_integral
+
 
 def lax_friedrichs_flux(u):
     '''
@@ -134,7 +139,8 @@ def surface_term_vectorized(u, advec_var):
     f_eta_surface_term = lax_friedrichs_flux(u)[1]
 
     Lp_xi   = af.moddims(af.reorder(af.tile(utils.polyval_1d(lagrange_coeffs,
-                            advec_var.xi_LGL), 1, 1, params.N_LGL), 1, 2, 0), params.N_LGL, 1, params.N_LGL ** 2)
+                                                             advec_var.xi_LGL), \
+    1, 1, params.N_LGL), 1, 2, 0), params.N_LGL, 1, params.N_LGL ** 2)
 
     Lq_eta  = af.tile(af.reorder(utils.polyval_1d(lagrange_coeffs,\
                          eta_LGL), 1, 2, 0), 1, 1, params.N_LGL)

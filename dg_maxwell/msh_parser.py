@@ -246,7 +246,8 @@ def plot_element_boundary(x_nodes, y_nodes, axes_handler,
 def plot_mesh_grid(nodes, elements, xi_LGL, eta_LGL,
                    axes_handler, print_element_tag = False,
                    element_tag_fontsize = 12,
-                   print_node_tag = False, node_tag_fontsize = 12):
+                   print_node_tag = False, node_tag_fontsize = 12,
+                   plot_LGL_grid = True):
     '''
     Plots the mesh grid.
 
@@ -284,6 +285,9 @@ def plot_mesh_grid(nodes, elements, xi_LGL, eta_LGL,
 
     node_tag_fontsize : int
                         Fontsize of the printed node tag on the meshgrid.
+
+    plot_LGL_grid : bool
+                    Plots the LGL grid if ``True``
                      
     Returns
     -------
@@ -292,8 +296,9 @@ def plot_mesh_grid(nodes, elements, xi_LGL, eta_LGL,
     '''
 
     for element_tag, element in enumerate(elements):
-        plot_element_grid(nodes[element, 0], nodes[element, 1],
-                          xi_LGL, eta_LGL, axes_handler)
+        if plot_LGL_grid == True:
+            plot_element_grid(nodes[element, 0], nodes[element, 1],
+                            xi_LGL, eta_LGL, axes_handler)
         plot_element_boundary(nodes[element, 0], nodes[element, 1],
                               axes_handler)
         if print_element_tag == True:
@@ -301,7 +306,9 @@ def plot_mesh_grid(nodes, elements, xi_LGL, eta_LGL,
                                               nodes[element, 1])
             axes_handler.text(element_centroid[0], element_centroid[1],
                               str(element_tag),
-                              fontsize = element_tag_fontsize, color = 'red')
+                              fontsize = element_tag_fontsize, color = 'red',
+                              ha = 'center',
+                              va = 'center')
 
         if print_node_tag == True:
             for node in element[:-1]:
@@ -365,7 +372,7 @@ def interelement_relations(elements):
     '''
     Finds the neighbouring elements and the physical boundaries for each of
     the elements.
-    
+
     Parameters
     ----------
     elements : np.array [N_elements 9]
@@ -388,7 +395,7 @@ def interelement_relations(elements):
                         To find what each edge id represents, see this
                         :py:meth:`dg_maxwell.msh_parser.edge_location`.
     '''
-    element_relations = np.ones([elements.shape[0], 4]) * -1
+    element_relations = np.ones([elements.shape[0], 4], dtype = np.int32) * -1
 
 
     for element_0_tag in np.arange(elements.shape[0]):

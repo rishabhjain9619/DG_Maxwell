@@ -11,6 +11,7 @@ from dg_maxwell import wave_equation
 from dg_maxwell import wave_equation_2d
 from dg_maxwell import msh_parser
 from dg_maxwell import isoparam
+from dg_maxwell import advection_2d_arbit_mesh as advec_2d__arbit_mesh
 
 af.set_backend(params.backend)
 af.set_device(params.device)
@@ -72,7 +73,8 @@ class advection_variables:
         None
         '''
 
-        self.xi_LGL = lagrange.LGL_points(N_LGL)
+        self.xi_LGL  = lagrange.LGL_points(N_LGL)
+        self.eta_LGL = lagrange.LGL_points(N_LGL)
 
         # N_Gauss number of Gauss nodes.
         self.gauss_points = af.np_to_af_array(lagrange.gauss_nodes(N_quad))
@@ -89,7 +91,8 @@ class advection_variables:
         # An array containing the coefficients of the lagrange basis polynomials.
         self.lagrange_coeffs = lagrange.lagrange_polynomial_coeffs(self.xi_LGL)
 
-        self.lagrange_basis_value = lagrange.lagrange_function_value(self.lagrange_coeffs, self.xi_LGL)
+        self.lagrange_basis_value = lagrange.lagrange_function_value(
+            self.lagrange_coeffs, self.xi_LGL)
 
         self.diff_pow = af.flip(af.transpose(af.range(N_LGL - 1) + 1), 1)
         self.dl_dxi_coeffs = af.broadcast(utils.multiply, self.lagrange_coeffs[:, :-1],
@@ -202,6 +205,31 @@ class advection_variables:
         self.time_2d = utils.linspace(0, int(total_time_2d / self.delta_t_2d)
                                       * self.delta_t_2d,
                                       int(total_time_2d / self.delta_t_2d))
+        
+        # Applying the periodic boundary conditions
+        self.interelement_relations = msh_parser.interelement_relations(
+            self.elements)
+        
+        for vertical_boundary in params.vertical_boundary_elements_pbc:
+            self.interelement_relations[vertical_boundary[0],
+                                        0] = vertical_boundary[1]
+            self.interelement_relations[vertical_boundary[1],
+                                        2] = vertical_boundary[0]
 
+        for horizontal_boundary in params.horizontal_boundary_elements_pbc:
+            if horizontal_boundary[1] < 110:
+                self.interelement_relations[horizontal_boundary[0],
+                                            3] = horizontal_boundary[1]
+                self.interelement_relations[horizontal_boundary[1],
+                                            1] = horizontal_boundary[0]
+                
+            else:
+                self.interelement_relations[horizontal_boundary[0],
+                                            3] = horizontal_boundary[1]
+                self.interelement_relations[horizontal_boundary[1],
+                                            3] = horizontal_boundary[0]
+
+        print('advection_variables __init__ completed')
+        
         return
     

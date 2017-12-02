@@ -33,11 +33,11 @@ def test_A_matrix():
     params.N_LGL      = 8
     params.N_quad     = 10
     params.N_Elements = 10
-    wave              = 'gaussian'
+    params.wave       = 'gaussian'
 
     gv = global_variables.advection_variables(params.N_LGL, params.N_quad,\
                                           params.x_nodes, params.N_Elements,\
-                                          params.c, params.total_time, wave,\
+                                          params.c, params.total_time, params.wave,\
                                           params.c_x, params.c_y, params.courant,\
                                           params.mesh_file, params.total_time_2d)
 
