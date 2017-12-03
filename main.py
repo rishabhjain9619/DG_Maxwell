@@ -15,6 +15,7 @@ from dg_maxwell import isoparam
 from dg_maxwell import lagrange
 from dg_maxwell import params
 from dg_maxwell import advection_2d
+from dg_maxwell import advection_2d_arbit_mesh
 from dg_maxwell import utils
 from dg_maxwell import global_variables
 
@@ -22,13 +23,13 @@ af.set_backend(params.backend)
 
 #print(af.mean(af.abs(advection_2d.u_analytical(0) - params.u_e_ij)))
 
-gv = global_variables.advection_variables(params.N_LGL, params.N_quad,\
-                                          params.x_nodes, params.N_Elements,\
-                                          params.c, params.total_time, params.wave,\
-                                          params.c_x, params.c_y, params.courant,\
+gv = global_variables.advection_variables(params.N_LGL, params.N_quad,
+                                          params.x_nodes, params.N_Elements,
+                                          params.c, params.total_time, params.wave,
+                                          params.c_x, params.c_y, params.courant,
                                           params.mesh_file, params.total_time_2d)
 
-advection_2d.time_evolution(gv)
+advection_2d_arbit_mesh.time_evolution(gv)
 
 
 #change_parameters(5)

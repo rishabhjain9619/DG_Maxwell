@@ -161,6 +161,8 @@ def lf_flux_all_edges(advec_var):
                                     u_element_1_at_edge)
                 
     print('Done')
+    
+    return element_lf_flux
 
 
 
@@ -173,8 +175,10 @@ def surface_term_vectorized(u, advec_var):
 
     dx_dxi  = 0.1
     dy_deta = 0.1
-
+    
+    element_lf_flux = lf_flux_all_edges(advec_var)
     for element_tag in np.arange(advec_var.elements.shape[0]):
+        print('->', element_tag)
         for p in np.arange(params.N_LGL):
             for q in np.arange(params.N_LGL):
                 
@@ -185,7 +189,7 @@ def surface_term_vectorized(u, advec_var):
 
                 xi_minus_1    = af.constant(-1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lp_xi_minus_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], xi_minus_1))
-                Fxi_minus_1   = af.flat(wave_equation_2d.F_x(advec_var.element_lf_flux[element_tag, edge_id]))
+                Fxi_minus_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
                 Lq_eta        = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], advec_var.eta_LGL))
 
                 left_edge_integrand = xi_minus_1 * Lp_xi_minus_1 * Fxi_minus_1 * Lq_eta * dy_deta
@@ -199,7 +203,7 @@ def surface_term_vectorized(u, advec_var):
 
                 eta_minus_1    = af.constant(-1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lq_eta_minus_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], eta_minus_1))
-                Feta_minus_1   = af.flat(w2d.F_x(element_lf_flux[element_tag, edge_id]))
+                Feta_minus_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
                 Lp_xi          = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], advec_var.xi_LGL))
 
                 bottom_edge_integrand = eta_minus_1 * Lq_eta_minus_1 * Feta_minus_1 * Lp_xi * dx_dxi
@@ -215,7 +219,7 @@ def surface_term_vectorized(u, advec_var):
 
                 xi_1    = af.constant(1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lp_xi_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], xi_1))
-                Fxi_1   = af.flat(w2d.F_x(element_lf_flux[element_tag, edge_id]))
+                Fxi_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
                 Lq_eta  = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], advec_var.eta_LGL))
 
                 right_edge_integrand = xi_1 * Lp_xi_1 * Fxi_1 * Lq_eta * dy_deta
@@ -231,7 +235,7 @@ def surface_term_vectorized(u, advec_var):
 
                 eta_1    = af.constant(1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lq_eta_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], eta_1))
-                Feta_1   = af.flat(w2d.F_x(element_lf_flux[element_tag, edge_id]))
+                Feta_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
                 Lp_xi    = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], advec_var.xi_LGL))
 
                 top_edge_integrand = eta_1 * Lq_eta_1 * Feta_1 * Lp_xi * dx_dxi
@@ -242,7 +246,8 @@ def surface_term_vectorized(u, advec_var):
 
                 surface_term[index, element_tag] = -left_edge_integration - bottom_edge_integration + right_edge_integration + left_edge_integration
 
-    print(surface_term[:, 0])
+    #print(surface_term[:, 0])
+    return surface_term
 
 
 def b_vector(u, advec_var):

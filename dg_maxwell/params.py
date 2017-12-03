@@ -59,7 +59,7 @@ c_y = 1.
 
 courant = 0.1
 
-mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'
+mesh_file = 'examples/read_and_plot_mesh/mesh/particle_in_rectangle.msh'
 
 
 total_time_2d = 2.0
