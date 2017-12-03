@@ -199,7 +199,8 @@ class advection_variables:
             self.y_e_ij[:, element_tag] = isoparam.isoparam_y_2D(
                 self.nodes[element, 1], self.xi_i, self.eta_j)
 
-        self.u_e_ij = af.sin(self.x_e_ij * 2 * np.pi + self.y_e_ij * 4 * np.pi)
+        self.u_e_ij = np.e**(-((self.x_e_ij - (-1.25)) ** 2 + self.y_e_ij ** 2) / 0.4**2)
+        #af.sin(self.x_e_ij * 2 * np.pi + self.y_e_ij * 4 * np.pi)
 
         # Array of timesteps seperated by delta_t.
         self.time_2d = utils.linspace(0, int(total_time_2d / self.delta_t_2d)

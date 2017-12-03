@@ -177,6 +177,7 @@ def surface_term_vectorized(u, advec_var):
     dy_deta = 0.1
     
     element_lf_flux = lf_flux_all_edges(advec_var)
+    
     for element_tag in np.arange(advec_var.elements.shape[0]):
         print('->', element_tag)
         for p in np.arange(params.N_LGL):
@@ -203,7 +204,7 @@ def surface_term_vectorized(u, advec_var):
 
                 eta_minus_1    = af.constant(-1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lq_eta_minus_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], eta_minus_1))
-                Feta_minus_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
+                Feta_minus_1   = af.flat(wave_equation_2d.F_y(element_lf_flux[element_tag, edge_id]))
                 Lp_xi          = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], advec_var.xi_LGL))
 
                 bottom_edge_integrand = eta_minus_1 * Lq_eta_minus_1 * Feta_minus_1 * Lp_xi * dx_dxi
@@ -235,7 +236,7 @@ def surface_term_vectorized(u, advec_var):
 
                 eta_1    = af.constant(1., d0 = params.N_LGL, d1 = 1, dtype = af.Dtype.f64)
                 Lq_eta_1 = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[q], eta_1))
-                Feta_1   = af.flat(wave_equation_2d.F_x(element_lf_flux[element_tag, edge_id]))
+                Feta_1   = af.flat(wave_equation_2d.F_y(element_lf_flux[element_tag, edge_id]))
                 Lp_xi    = af.flat(utils.polyval_1d(advec_var.lagrange_coeffs[p], advec_var.xi_LGL))
 
                 top_edge_integrand = eta_1 * Lq_eta_1 * Feta_1 * Lp_xi * dx_dxi
@@ -318,7 +319,7 @@ def time_evolution(gv):
 
         if (L1_norm >= 100):
             break
-        if (i % 10) == 0:
+        if (i % 1) == 0:
             h5file = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(i)) + '.hdf5', 'w')
             dset   = h5file.create_dataset('u_i', data = u, dtype = 'd')
 
