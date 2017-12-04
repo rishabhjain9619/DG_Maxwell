@@ -59,7 +59,7 @@ c_y = 1.
 
 courant = 0.1
 
-mesh_file = 'examples/read_and_plot_mesh/mesh/particle_in_rectangle.msh'
+mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'
 
 
 total_time_2d = 2.0
@@ -67,42 +67,55 @@ total_time_2d = 2.0
 volume_integrand_scheme_2d = 'Lobatto'
 
 
-# Periodic boundary conditions
+# Periodic boundary conditions for 10x10 mesh
 
-#                                left   right
-vertical_boundary_elements_pbc = [[0 ,  184],
-                                  [10,  194],
-                                  [20,  204],
-                                  [30,  214],
-                                  [40,  224],
-                                  [50,  174],
-                                  [60,  164],
-                                  [70,  154],
-                                  [80,  144],
-                                  [90,  134],
-                                  [100, 124]]
-vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
+vertical_boundary_elements_pbc   = np.zeros([10, 2], dtype = np.int64)
+horizontal_boundary_elements_pbc = np.zeros([10, 2], dtype = np.int64)
 
-#                                    Top  Bottom
-horizontal_boundary_elements_pbc = [[  0, 100],
-                                    [  1, 101],
-                                    [  2, 102],
-                                    [  3, 103],
-                                    [  4, 104],
-                                    [  5, 105],
-                                    [  6, 106],
-                                    [  7, 107],
-                                    [  8, 108],
-                                    [  9, 109],
-                                    [225, 110],
-                                    [175, 115],
-                                    [176, 116],
-                                    [177, 117],
-                                    [178, 118],
-                                    [179, 119],
-                                    [180, 120],
-                                    [181, 121],
-                                    [182, 122],
-                                    [183, 123],
-                                    [184, 124]]
-horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
+for idx in np.arange(vertical_boundary_elements_pbc.shape[0]):
+    vertical_boundary_elements_pbc[idx] = np.array([idx * 10, idx * 10 + 9])
+print(vertical_boundary_elements_pbc)
+
+for idx in np.arange(horizontal_boundary_elements_pbc.shape[0]):
+    horizontal_boundary_elements_pbc[idx] = np.array([idx, idx + 90])
+print(horizontal_boundary_elements_pbc)
+
+## Periodic boundary conditions for particle in a rectangle mesh
+
+##                                left   right
+#vertical_boundary_elements_pbc = [[0 ,  184],
+                                  #[10,  194],
+                                  #[20,  204],
+                                  #[30,  214],
+                                  #[40,  224],
+                                  #[50,  174],
+                                  #[60,  164],
+                                  #[70,  154],
+                                  #[80,  144],
+                                  #[90,  134],
+                                  #[100, 124]]
+#vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
+
+##                                    Top  Bottom
+#horizontal_boundary_elements_pbc = [[  0, 100],
+                                    #[  1, 101],
+                                    #[  2, 102],
+                                    #[  3, 103],
+                                    #[  4, 104],
+                                    #[  5, 105],
+                                    #[  6, 106],
+                                    #[  7, 107],
+                                    #[  8, 108],
+                                    #[  9, 109],
+                                    #[225, 110],
+                                    #[175, 115],
+                                    #[176, 116],
+                                    #[177, 117],
+                                    #[178, 118],
+                                    #[179, 119],
+                                    #[180, 120],
+                                    #[181, 121],
+                                    #[182, 122],
+                                    #[183, 123],
+                                    #[184, 124]]
+#horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)

@@ -98,7 +98,7 @@ def contour_2d(u, index):
            
 
 for i in trange(201):
-    h5py_data = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(10 * i)) + '.hdf5', 'r')
+    h5py_data = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(1 * i)) + '.hdf5', 'r')
     u_LGL     = af.np_to_af_array(h5py_data['u_i'][:])
     contour_2d(u_LGL, i)
     if i > 199 :
