@@ -209,6 +209,7 @@ examples/results
 !docs/quazar_logo.png
 !dg_maxwell/tests/wave_equation_2d/files/*
 !examples/interelement_relations/*
+!examples/lagrange_interpolation_general/*
 *.kate-swp
 
 *.ipynb_checkpoints*
