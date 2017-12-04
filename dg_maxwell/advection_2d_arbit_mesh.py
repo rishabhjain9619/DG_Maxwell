@@ -81,11 +81,10 @@ def lax_friedrichs_flux(u_n, u_n_plus_1):
     Calculates the Lax-Friedrichs flux.
     [TODO] Documentation needed
     '''
-    lf_flux = None
     
-    lf_flux = (wave_equation_2d.F_x(u_n_plus_1) \
-            + wave_equation_2d.F_x(u_n)) / 2. \
-            - params.c_lax * (u_n_plus_1 - u_n) / 2.
+    lf_flux = ((wave_equation_2d.F_x(u_n_plus_1) \
+            + wave_equation_2d.F_x(u_n)) / 2.) \
+            - (params.c_lax * (u_n_plus_1 - u_n) / 2.)
     
     return lf_flux
 
@@ -150,6 +149,7 @@ def lf_flux_all_edges(u, advec_var):
                                     element_0_edge_id] = lax_friedrichs_flux(
                                         u_element_1_at_edge,
                                         u_element_0_at_edge)
+                                    
                 elif element_0_edge_id == 1:
                     element_lf_flux[element_0_tag,
                                     element_0_edge_id] = lax_friedrichs_flux(
@@ -255,12 +255,21 @@ def surface_term_vectorized(u, advec_var):
             af.tile(wave_equation_2d.F_x(
                 af.flat(element_lf_flux[element_tag, 0])),
                 d0 = 1, d1 = params.N_LGL * params.N_LGL))
-        F_xi_i_eta_minus_1 = af.transpose(af.tile(wave_equation_2d.F_y(af.flat(element_lf_flux[element_tag, 1])), d0 = 1,
-                                                  d1 = params.N_LGL * params.N_LGL))
-        F_xi_1_eta_j       = af.transpose(af.tile(wave_equation_2d.F_x(af.flat(element_lf_flux[element_tag, 2])), d0 = 1,
-                                                d1 = params.N_LGL * params.N_LGL))
-        F_xi_i_eta_1       = af.transpose(af.tile(wave_equation_2d.F_y(af.flat(element_lf_flux[element_tag, 3])), d0 = 1,
-                                                d1 = params.N_LGL * params.N_LGL))
+        
+        F_xi_i_eta_minus_1 = af.transpose(
+            af.tile(wave_equation_2d.F_y(
+                af.flat(element_lf_flux[element_tag, 1])), d0 = 1,
+                d1 = params.N_LGL * params.N_LGL))
+        
+        F_xi_1_eta_j = af.transpose(
+            af.tile(wave_equation_2d.F_x(
+                af.flat(element_lf_flux[element_tag, 2])), d0 = 1,
+                d1 = params.N_LGL * params.N_LGL))
+        
+        F_xi_i_eta_1 = af.transpose(
+            af.tile(wave_equation_2d.F_y(
+                af.flat(element_lf_flux[element_tag, 3])), d0 = 1,
+                d1 = params.N_LGL * params.N_LGL))
         
         # 5. Calculate the surface term intergal for the left edge
 
@@ -394,6 +403,7 @@ def time_evolution(gv):
             dset   = h5file.create_dataset('u_i', data = u, dtype = 'd')
 
             dset[:, :] = u[:, :]
+            h5file.close()
 
 
         u += +RK4_timestepping(A_inverse, u, delta_t, gv)

@@ -62,7 +62,7 @@ y_e_ij          = gv.y_e_ij
 def contour_2d(u, index):
     '''
     '''
-    color_levels = np.linspace(-1.1, 1.1, 100)
+    color_levels = np.linspace(0, 1, 100)
     u_plot = af.flip(af.moddims(u, params.N_LGL, params.N_LGL, 10, 10), 0)
     x_plot = af.flip(af.moddims(x_e_ij, params.N_LGL, params.N_LGL, 10, 10), 0)
     y_plot = af.flip(af.moddims(y_e_ij, params.N_LGL, params.N_LGL, 10, 10), 0)
@@ -91,18 +91,18 @@ def contour_2d(u, index):
     pl.contourf(x_contour, y_contour, u_contour, 200, levels = color_levels, cmap = 'jet')
     pl.gca().set_aspect('equal')
     pl.colorbar()
-    pl.title('Time = %f' % (index * 10 * 1e-3))
+    pl.title(r'$t_n$ = %i' % (index))
     fig.savefig('results/2D_Wave_images/%04d' %(index) + '.png')
     pl.close('all')
     return
            
 
-for i in trange(201):
+for i in trange(211):
     h5py_data = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(1 * i)) + '.hdf5', 'r')
     u_LGL     = af.np_to_af_array(h5py_data['u_i'][:])
     contour_2d(u_LGL, i)
-    if i > 199 :
-        print(af.mean(af.abs(u_LGL - params.u_e_ij)))
+    #if i > 199 :
+        #print(af.mean(af.abs(u_LGL - params.u_e_ij)))
 
 # Creating a folder to store hdf5 files. If it doesn't exist.
 results_directory = 'results/1D_Wave_images'

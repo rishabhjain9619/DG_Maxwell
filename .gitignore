@@ -215,6 +215,7 @@ examples/results
 !examples/global_variables_class/*
 !examples/h5py/*
 !examples/lagrange_interpolation_general/*
+!examples/read_and_plot_particle_in_rectangle_u_eij/*
 *.kate-swp
 
 *.ipynb_checkpoints*
