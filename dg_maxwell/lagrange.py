@@ -441,3 +441,33 @@ def Li_basis_value(L_basis, i, xi):
     '''
 
     return utils.polyval_1d(L_basis[i], xi)
+
+
+def lagrange_interpolation(fn_i, advec_var):
+    '''
+    Finds the general interpolation of a function.
+    
+    Parameters
+    ----------
+    fn_i : af.Array [N N_LGL 1 1]
+           Value of :math:`N` functions at the LGL points.
+    
+    advec_var : global_variables.advection_variables
+                An instance of the ``advection_variables`` class to use
+                the pre-evaluated lagrange polynomials and N_LGL.
+    
+    Returns
+    -------
+    lagrange_interpolation : af.Array [N N_LGL 1 1]
+                             :math:`N` interpolated polynomials for
+                             :math:`N` functions.
+    '''
+    
+    fn_i = af.transpose(af.reorder(fn_i, d0 = 2, d1 = 1, d2 = 0))
+    lagrange_interpolation = af.broadcast(utils.multiply,
+                                          advec_var.lagrange_coeffs, fn_i)
+    lagrange_interpolation = af.reorder(af.sum(lagrange_interpolation, dim = 0),
+                                        d0 = 2, d1 = 1, d2 = 0)
+
+    return lagrange_interpolation
+

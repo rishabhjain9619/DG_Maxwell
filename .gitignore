@@ -214,7 +214,7 @@ examples/results
 !examples/interelement_relations/*
 !examples/global_variables_class/*
 !examples/h5py/*
-
+!examples/lagrange_interpolation_general/*
 *.kate-swp
 
 *.ipynb_checkpoints*
