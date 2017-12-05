@@ -188,6 +188,38 @@ def lf_flux_all_edges(u, advec_var):
                                                         element_0_edge_id))
                 u_element_1_at_edge = af.np_to_af_array(np.zeros([params.N_LGL]))
                 
+                if element_0_edge_id == 0:
+                    element_lf_flux[element_0_tag,
+                                    element_0_edge_id] = lax_friedrichs_flux(
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_x(u_element_1_at_edge),
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_x(u_element_0_at_edge))
+
+                elif element_0_edge_id == 1:
+                    element_lf_flux[element_0_tag,
+                                    element_0_edge_id] = lax_friedrichs_flux(
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_y(u_element_1_at_edge),
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_y(u_element_0_at_edge))
+
+                elif element_0_edge_id == 2:
+                    element_lf_flux[element_0_tag,
+                                    element_0_edge_id] = lax_friedrichs_flux(
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_x(u_element_0_at_edge),
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_x(u_element_1_at_edge))
+
+                elif element_0_edge_id == 3:
+                    element_lf_flux[element_0_tag,
+                                    element_0_edge_id] = lax_friedrichs_flux(
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_y(u_element_0_at_edge),
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_y(u_element_1_at_edge))
+
                 element_lf_flux[element_0_tag,
                                 element_0_edge_id] = lax_friedrichs_flux(
                                     u_element_0_at_edge,
