@@ -76,14 +76,13 @@ def volume_integral(u, advec_var):
 
 
 
-def lax_friedrichs_flux(u_n, u_n_plus_1):
+def lax_friedrichs_flux(u_n, F_n, u_n_plus_1, F_n_plus_1):
     '''
     Calculates the Lax-Friedrichs flux.
     [TODO] Documentation needed
     '''
     
-    lf_flux = ((wave_equation_2d.F_x(u_n_plus_1) \
-            + wave_equation_2d.F_x(u_n)) / 2.) \
+    lf_flux = ((F_n_plus_1 + F_n) / 2.) \
             - (params.c_lax * (u_n_plus_1 - u_n) / 2.)
     
     return lf_flux
@@ -102,13 +101,13 @@ def u_at_edge(u_e_ij, edge_id):
     if edge_id == 0:
         return u_e_ij[:, 0]
     
-    elif edge_id == 1:
+    elif edge_id == 3:
         return u_e_ij[-1]
     
     elif edge_id == 2:
         return u_e_ij[:, -1]
     
-    elif edge_id == 3:
+    elif edge_id == 1:
         return u_e_ij[0]
     
     else:
@@ -143,32 +142,43 @@ def lf_flux_all_edges(u, advec_var):
                                                         element_0_edge_id))
                 u_element_1_at_edge = af.flat(u_at_edge(u_element_1,
                                                         element_1_edge_id))
-                
+
                 if element_0_edge_id == 0:
                     element_lf_flux[element_0_tag,
                                     element_0_edge_id] = lax_friedrichs_flux(
                                         u_element_1_at_edge,
-                                        u_element_0_at_edge)
-                                    
+                                        wave_equation_2d.F_x(u_element_1_at_edge),
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_x(u_element_0_at_edge))
+
                 elif element_0_edge_id == 1:
                     element_lf_flux[element_0_tag,
                                     element_0_edge_id] = lax_friedrichs_flux(
                                         u_element_1_at_edge,
-                                        u_element_0_at_edge)
-                                    
+                                        wave_equation_2d.F_y(u_element_1_at_edge),
+                                        u_element_0_at_edge,
+                                        wave_equation_2d.F_y(u_element_0_at_edge))
+
                 elif element_0_edge_id == 2:
                     element_lf_flux[element_0_tag,
                                     element_0_edge_id] = lax_friedrichs_flux(
                                         u_element_0_at_edge,
-                                        u_element_1_at_edge)
+                                        wave_equation_2d.F_x(u_element_0_at_edge),
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_x(u_element_1_at_edge))
+
                 elif element_0_edge_id == 3:
                     element_lf_flux[element_0_tag,
                                     element_0_edge_id] = lax_friedrichs_flux(
                                         u_element_0_at_edge,
-                                        u_element_1_at_edge)
+                                        wave_equation_2d.F_y(u_element_0_at_edge),
+                                        u_element_1_at_edge,
+                                        wave_equation_2d.F_y(u_element_1_at_edge))
+
                 else:
                     pass
-            
+
+            # Set the Dirichet BC if the edge doesn't have PBC
             if element_1_tag == -1:
                 print('Element {} Tag at edge {} = -1'.format(element_0_tag,
                                                               element_0_edge_id))
@@ -192,14 +202,12 @@ def lf_flux_all_edges(u, advec_var):
 def surface_term_vectorized(u, advec_var):
     '''
     '''
-    surface_term = af.constant(0., d0 = params.N_LGL ** 2,
-                               d1 = advec_var.elements.shape[0])
 
     dx_dxi  = 0.1
     dy_deta = 0.1
-    
+
     element_lf_flux = lf_flux_all_edges(u, advec_var)
-    
+
     # 1. Find L_p(1) and L_p(-1)
     Lp = advec_var.lagrange_coeffs
     Lq = advec_var.lagrange_coeffs
@@ -227,7 +235,7 @@ def surface_term_vectorized(u, advec_var):
     Lq_minus_1_quick_tile = af.tile(Lq_minus_1,
                                     d0 = params.N_LGL,
                                     d1 = params.N_LGL)
-    
+
     # 2. Find Lp(xi) and Lq(eta) [N_LGL * N_LGL, N_LGL]
 
     Lp_xi_i = utils.polyval_1d(Lp, advec_var.xi_LGL)
@@ -248,67 +256,114 @@ def surface_term_vectorized(u, advec_var):
                                d0 = params.N_LGL * params.N_LGL,
                                d1 = params.N_LGL)
 
-    F_xi_minus_1_eta_j = af.transpose(af.tile(wave_equation_2d.F_x(af.reorder(element_lf_flux[:, 0], d0 = 2, d1 = 1, d2 = 0)),
-                                            d0 = 1, d1 = params.N_LGL * params.N_LGL))
+    F_xi_minus_1_eta_j = af.transpose(
+        af.tile(wave_equation_2d.F_x(af.reorder(element_lf_flux[:, 0],
+                                                d0 = 2, d1 = 1, d2 = 0)),
+                d0 = 1, d1 = params.N_LGL * params.N_LGL))
 
-    F_xi_i_eta_minus_1 = af.transpose(af.tile(wave_equation_2d.F_y(af.reorder(element_lf_flux[:, 1], d0 = 2, d1 = 1, d2 = 0)),
-                                            d0 = 1, d1 = params.N_LGL * params.N_LGL))
+    F_xi_i_eta_minus_1 = af.transpose(
+        af.tile(wave_equation_2d.F_y(af.reorder(element_lf_flux[:, 1],
+                                                d0 = 2, d1 = 1, d2 = 0)),
+        d0 = 1, d1 = params.N_LGL * params.N_LGL))
 
-    F_xi_1_eta_j       = af.transpose(af.tile(wave_equation_2d.F_x(af.reorder(element_lf_flux[:, 2], d0 = 2, d1 = 1, d2 = 0)),
-                                            d0 = 1, d1 = params.N_LGL * params.N_LGL))
+    F_xi_1_eta_j       = af.transpose(
+        af.tile(wave_equation_2d.F_x(af.reorder(element_lf_flux[:, 2],
+                                                d0 = 2, d1 = 1, d2 = 0)),
+        d0 = 1, d1 = params.N_LGL * params.N_LGL))
 
-    F_xi_i_eta_1       = af.transpose(af.tile(wave_equation_2d.F_y(af.reorder(element_lf_flux[:, 3], d0 = 2, d1 = 1, d2 = 0)),
-                                            d0 = 1, d1 = params.N_LGL * params.N_LGL))
+    F_xi_i_eta_1       = af.transpose(
+        af.tile(wave_equation_2d.F_y(af.reorder(element_lf_flux[:, 3],
+                                                d0 = 2, d1 = 1, d2 = 0)),
+        d0 = 1, d1 = params.N_LGL * params.N_LGL))
 
     # 5. Calculate the surface term intergal for the left edge
 
-    integrand_left_edge = af.broadcast(utils.multiply, F_xi_minus_1_eta_j, Lp_minus_1_slow_tile * Lq_eta_j_quick_tile * dy_deta_tile)
-    integrand_left_edge_merge_elements = af.transpose(af.moddims(af.transpose(integrand_left_edge),
-                                                                d0 = integrand_left_edge.shape[1],
-                                                                d1 = integrand_left_edge.shape[0] * integrand_left_edge.shape[2],
-                                                                d2 = 1))
-    integrand_left_edge_merge_elements = lagrange.lagrange_interpolation(integrand_left_edge_merge_elements, advec_var)
-    integral_left_edge_merge_elements  = utils.integrate_1d(integrand_left_edge_merge_elements, order = params.N_LGL + 1,
-                                                            scheme = 'gauss')
-    integral_left_edge = af.moddims(integral_left_edge_merge_elements, d0 = integrand_left_edge.shape[0], d1 = integrand_left_edge.shape[2])
+    integrand_left_edge = af.broadcast(utils.multiply, F_xi_minus_1_eta_j,
+                                       Lp_minus_1_slow_tile \
+                                     * Lq_eta_j_quick_tile  \
+                                     * dy_deta_tile)
+    integrand_left_edge_merge_elements = \
+        af.transpose(af.moddims(af.transpose(integrand_left_edge),
+                                d0 = integrand_left_edge.shape[1],
+                                d1 = integrand_left_edge.shape[0] \
+                                   * integrand_left_edge.shape[2],
+                               d2 = 1))
+    
+    integrand_left_edge_merge_elements = lagrange.lagrange_interpolation(
+        integrand_left_edge_merge_elements, advec_var)
+    integral_left_edge_merge_elements  = utils.integrate_1d(
+        integrand_left_edge_merge_elements,
+        order = params.N_LGL + 1,
+        scheme = 'gauss')
+    
+    integral_left_edge = af.moddims(integral_left_edge_merge_elements,
+                                    d0 = integrand_left_edge.shape[0],
+                                    d1 = integrand_left_edge.shape[2])
 
     # 6. Calculate the surface term intergal for the bottom edge
 
-    integrand_bottom_edge = af.broadcast(utils.multiply, F_xi_i_eta_minus_1, Lp_xi_i_slow_tile * Lq_minus_1_quick_tile * dx_dxi_tile)
-    integrand_bottom_edge_merge_elements = af.transpose(af.moddims(af.transpose(integrand_bottom_edge),
-                                                                d0 = integrand_bottom_edge.shape[1],
-                                                                d1 = integrand_bottom_edge.shape[0] * integrand_bottom_edge.shape[2],
-                                                                d2 = 1))
-    integrand_bottom_edge_merge_elements = lagrange.lagrange_interpolation(integrand_bottom_edge_merge_elements, advec_var)
-    integral_bottom_edge_merge_elements  = utils.integrate_1d(integrand_bottom_edge_merge_elements, order = params.N_LGL + 1,
-                                                            scheme = 'gauss')
-    integral_bottom_edge = af.moddims(integral_bottom_edge_merge_elements, d0 = integrand_bottom_edge.shape[0], d1 = integrand_bottom_edge.shape[2])
+    integrand_bottom_edge = af.broadcast(utils.multiply, F_xi_i_eta_minus_1,
+                                         Lp_xi_i_slow_tile \
+                                       * Lq_minus_1_quick_tile \
+                                       * dx_dxi_tile)
+    integrand_bottom_edge_merge_elements = af.transpose(
+        af.moddims(af.transpose(integrand_bottom_edge),
+                   d0 = integrand_bottom_edge.shape[1],
+                   d1 = integrand_bottom_edge.shape[0]  \
+                      * integrand_bottom_edge.shape[2], \
+                   d2 = 1))
+    integrand_bottom_edge_merge_elements = lagrange.lagrange_interpolation(
+        integrand_bottom_edge_merge_elements, advec_var)
+    integral_bottom_edge_merge_elements  = utils.integrate_1d(
+        integrand_bottom_edge_merge_elements, order = params.N_LGL + 1,
+        scheme = 'gauss')
+    integral_bottom_edge = af.moddims(integral_bottom_edge_merge_elements,
+                                      d0 = integrand_bottom_edge.shape[0],
+                                      d1 = integrand_bottom_edge.shape[2])
 
 
     # 7. Calculate the surface term intergal for the right edge
 
-    integrand_right_edge = af.broadcast(utils.multiply, F_xi_1_eta_j, Lp_1_slow_tile * Lq_eta_j_quick_tile * dy_deta_tile)
-    integrand_right_edge_merge_elements = af.transpose(af.moddims(af.transpose(integrand_right_edge),
-                                                                d0 = integrand_right_edge.shape[1],
-                                                                d1 = integrand_right_edge.shape[0] * integrand_right_edge.shape[2],
-                                                                d2 = 1))
-    integrand_right_edge_merge_elements = lagrange.lagrange_interpolation(integrand_right_edge_merge_elements, advec_var)
-    integral_right_edge_merge_elements  = utils.integrate_1d(integrand_right_edge_merge_elements, order = params.N_LGL + 1,
-                                                            scheme = 'gauss')
-    integral_right_edge = af.moddims(integral_right_edge_merge_elements, d0 = integrand_right_edge.shape[0], d1 = integrand_right_edge.shape[2])
+    integrand_right_edge = af.broadcast(utils.multiply, F_xi_1_eta_j,
+                                        Lp_1_slow_tile \
+                                      * Lq_eta_j_quick_tile \
+                                      * dy_deta_tile)
+    integrand_right_edge_merge_elements = af.transpose(
+        af.moddims(af.transpose(integrand_right_edge),
+                   d0 = integrand_right_edge.shape[1],
+                   d1 = integrand_right_edge.shape[0] \
+                   * integrand_right_edge.shape[2], \
+                   d2 = 1))
+    integrand_right_edge_merge_elements = lagrange.lagrange_interpolation(
+        integrand_right_edge_merge_elements, advec_var)
+    integral_right_edge_merge_elements  = utils.integrate_1d(
+        integrand_right_edge_merge_elements, order = params.N_LGL + 1,
+        scheme = 'gauss')
+    integral_right_edge = af.moddims(integral_right_edge_merge_elements,
+                                     d0 = integrand_right_edge.shape[0],
+                                     d1 = integrand_right_edge.shape[2])
 
 
     # 8. Calculate the surface term intergal for the top edge
 
-    integrand_top_edge = af.broadcast(utils.multiply, F_xi_i_eta_1, Lp_xi_i_slow_tile * Lq_1_quick_tile * dx_dxi_tile)
-    integrand_top_edge_merge_elements = af.transpose(af.moddims(af.transpose(integrand_top_edge),
-                                                                d0 = integrand_top_edge.shape[1],
-                                                                d1 = integrand_top_edge.shape[0] * integrand_top_edge.shape[2],
-                                                                d2 = 1))
-    integrand_top_edge_merge_elements = lagrange.lagrange_interpolation(integrand_top_edge_merge_elements, advec_var)
-    integral_top_edge_merge_elements  = utils.integrate_1d(integrand_top_edge_merge_elements, order = params.N_LGL + 1,
-                                                            scheme = 'gauss')
-    integral_top_edge = af.moddims(integral_top_edge_merge_elements, d0 = integrand_top_edge.shape[0], d1 = integrand_top_edge.shape[2])
+    integrand_top_edge = af.broadcast(utils.multiply, F_xi_i_eta_1,
+                                      Lp_xi_i_slow_tile \
+                                    * Lq_1_quick_tile   \
+                                    * dx_dxi_tile)
+    integrand_top_edge_merge_elements = af.transpose(
+        af.moddims(af.transpose(integrand_top_edge),
+                   d0 = integrand_top_edge.shape[1],
+                   d1 = integrand_top_edge.shape[0]  \
+                      * integrand_top_edge.shape[2], \
+                   d2 = 1))
+    integrand_top_edge_merge_elements = lagrange.lagrange_interpolation(
+        integrand_top_edge_merge_elements, advec_var)
+    integral_top_edge_merge_elements  = utils.integrate_1d(
+        integrand_top_edge_merge_elements, order = params.N_LGL + 1,
+        scheme = 'gauss')
+    integral_top_edge = af.moddims(integral_top_edge_merge_elements,
+                                   d0 = integrand_top_edge.shape[0],
+                                   d1 = integrand_top_edge.shape[2])
 
     surface_term = - integral_left_edge   \
                    - integral_bottom_edge \
