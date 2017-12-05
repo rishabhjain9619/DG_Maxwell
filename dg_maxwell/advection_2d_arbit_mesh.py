@@ -219,11 +219,6 @@ def lf_flux_all_edges(u, advec_var):
                                         wave_equation_2d.F_y(u_element_0_at_edge),
                                         u_element_1_at_edge,
                                         wave_equation_2d.F_y(u_element_1_at_edge))
-
-                element_lf_flux[element_0_tag,
-                                element_0_edge_id] = lax_friedrichs_flux(
-                                    u_element_0_at_edge,
-                                    u_element_1_at_edge)
                 
     print('Done')
     
