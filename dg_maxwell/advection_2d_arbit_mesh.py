@@ -88,8 +88,7 @@ def lax_friedrichs_flux(u_n, F_n, u_n_plus_1, F_n_plus_1):
     return lf_flux
 
 
-
-def u_at_edge(u_e_ij, edge_id):
+def u_at_edge_old(u_e_ij, edge_id):
     '''
     Finds the :math:`u` at given edge id for :math:`u_{eij}`.
     
@@ -115,6 +114,170 @@ def u_at_edge(u_e_ij, edge_id):
     
     return
 
+def u_at_edge(u_e_ij, edge_id, advec_var):
+    '''
+    Finds the :math:`u` at given edge id for :math:`u_{eij}`.
+    
+    [Tested]
+    [TODO] 1. Documentation; 2. Unit tests
+    
+    Parameters
+    ----------
+    u_e_ij : af.Array [N_LGL^2 N_elements 1 1]
+             The u_e_ij array. It can be replaced by the ``x_e_ij`` or
+             ``y_e_ij`` array to get the :math:`x` or :math:`y` coordinates
+             at the edges.
+
+    edge_id : int
+              Edge id.
+              To find what each edge id represents, see this
+              :py:meth:`dg_maxwell.msh_parser.edge_location`.
+
+
+    advec_var : global_variables.advec_variables
+    
+    Returns
+    -------
+    u_edge : af.Array [N_LGL N_elements 1 1]
+             The :math:`u` at the required edge.
+             
+
+    '''
+    
+    if edge_id == 0:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[:, 0, :], d0 = 0, d1 = 2, d2 = 1)
+        
+        return u_edge
+
+    # Get bottom edge of all the elements
+
+    if edge_id == 1:
+        
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[0, :, :], d0 = 1, d1 = 2, d2 = 0)
+        return u_edge
+
+    # Get right edge of all the elements
+
+    if edge_id == 2:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[:, -1, :], d0 = 0, d1 = 2, d2 = 1)
+        return u_edge
+
+    # Get top edge of all the elements
+
+    if edge_id == 3:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[-1, :, :], d0 = 1, d1 = 2, d2 = 0)
+        return u_edge
+
+    return
+
+
+def u_at_edge_element_wise(u_e_ij, edge_id, element_tags, advec_var,
+                           unshared_edge_value = 0):
+    '''
+    Finds the :math:`u` at given edge id for :math:`u_{eij}`.
+    
+    [Tested]
+    [TODO] 1. Documentation; 2. Unit tests
+    
+    Parameters
+    ----------
+    u_e_ij : af.Array [N_LGL^2 N_elements 1 1]
+             The u_e_ij array. It can be replaced by the ``x_e_ij`` or
+             ``y_e_ij`` array to get the :math:`x` or :math:`y` coordinates
+             at the edges.
+
+    edge_id : int
+              Edge id.
+              To find what each edge id represents, see this
+              :py:meth:`dg_maxwell.msh_parser.edge_location`.
+
+    element_tags: af.Array [N 1 1 1] dtype = af.Dtype.u32
+                  The element tags for which the ``u_edge`` has to be found.
+
+    advec_var : global_variables.advec_variables
+    
+    unshared_edge_value : float
+                          :math:`u` value to put on the unshared edge.
+
+    Returns
+    -------
+    u_edge : af.Array [N_LGL N_elements 1 1]
+             The :math:`u` at the required edge.
+             
+
+    '''
+    u_edge = None
+    
+    if edge_id == 0:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[:, 0, element_tags], d0 = 0, d1 = 2, d2 = 1)
+
+
+    # Get bottom edge of all the elements
+
+    if edge_id == 1:
+        
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[0, :, element_tags], d0 = 1, d1 = 2, d2 = 0)
+
+    # Get right edge of all the elements
+
+    if edge_id == 2:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[:, -1, element_tags], d0 = 0, d1 = 2, d2 = 1)
+
+    # Get top edge of all the elements
+
+    if edge_id == 3:
+
+        u_e_ij = af.reorder(u_e_ij, d0 = 0, d1 = 2, d2 = 1)
+        u_e_ij = af.moddims(u_e_ij, d0 = params.N_LGL, d1 = params.N_LGL,
+                            d2 = advec_var.elements.shape[0])
+
+        u_edge = af.reorder(u_e_ij[-1, :, element_tags], d0 = 1, d1 = 2, d2 = 0)
+
+    select_unshared_edges_0 = af.transpose(
+        advec_var.interelement_relations[:, edge_id] != -1)
+    
+    select_unshared_edges_1 = af.transpose(
+        advec_var.interelement_relations[:, edge_id] == -1)
+    
+    u_edge = af.broadcast(utils.multiply, select_unshared_edges_0, u_edge)
+    u_edge = af.broadcast(utils.add,
+                          select_unshared_edges_1 * unshared_edge_value,
+                          u_edge)
+
+    return u_edge
 
 
 def lf_flux_all_edges(u, advec_var):
@@ -123,25 +286,26 @@ def lf_flux_all_edges(u, advec_var):
     '''
     element_lf_flux = af.np_to_af_array(np.zeros([advec_var.elements.shape[0],
                                                   4, params.N_LGL]))
-
+    interelement_relations = np.array(advec_var.interelement_relations)
+    
     for element_0_tag in np.arange(u.shape[1]):
         for element_0_edge_id, element_1_tag in enumerate(
-            advec_var.interelement_relations[element_0_tag]):
+            interelement_relations[element_0_tag]):
             if element_1_tag != -1:
-                element_1_tag = advec_var.interelement_relations[element_0_tag,
-                                                                 element_0_edge_id]
+                element_1_tag = interelement_relations[element_0_tag,
+                                                       element_0_edge_id]
 
                 element_1_edge_id = np.where(
-                    advec_var.interelement_relations[element_1_tag] \
+                    interelement_relations[element_1_tag] \
                     == element_0_tag)[0][0]
 
                 u_element_0 = u[:, element_0_tag]
                 u_element_1 = u[:, element_1_tag]
 
-                u_element_0_at_edge = af.flat(u_at_edge(u_element_0,
-                                                        element_0_edge_id))
-                u_element_1_at_edge = af.flat(u_at_edge(u_element_1,
-                                                        element_1_edge_id))
+                u_element_0_at_edge = af.flat(u_at_edge_old(u_element_0,
+                                                            element_0_edge_id))
+                u_element_1_at_edge = af.flat(u_at_edge_old(u_element_1,
+                                                            element_1_edge_id))
 
                 if element_0_edge_id == 0:
                     element_lf_flux[element_0_tag,
@@ -184,8 +348,8 @@ def lf_flux_all_edges(u, advec_var):
                                                               element_0_edge_id))
                 u_element_0 = u[:, element_0_tag]
                 
-                u_element_0_at_edge = af.flat(u_at_edge(u_element_0,
-                                                        element_0_edge_id))
+                u_element_0_at_edge = af.flat(u_at_edge_old(u_element_0,
+                                                            element_0_edge_id))
                 u_element_1_at_edge = af.np_to_af_array(np.zeros([params.N_LGL]))
                 
                 if element_0_edge_id == 0:
@@ -225,6 +389,120 @@ def lf_flux_all_edges(u, advec_var):
     return element_lf_flux
 
 
+def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
+    '''
+    '''
+    ## Create 4 arrays to store the u_e_ij of the edges
+
+    # Left edge
+
+    left_edge_id = 0
+    u_left = u_at_edge(u_e_ij,
+                       edge_id = left_edge_id,
+                       advec_var = advec_var)
+
+    # Bottom edge
+    bottom_edge_id = 1
+    u_bottom = u_at_edge(u_e_ij,
+                         edge_id = bottom_edge_id,
+                         advec_var = advec_var)
+
+    # Right edge
+    right_edge_id = 2
+    u_right = u_at_edge(u_e_ij,
+                        edge_id = right_edge_id,
+                        advec_var = advec_var)
+
+    # Top edge
+    top_edge_id = 3
+    u_top = u_at_edge(u_e_ij,
+                      edge_id = top_edge_id,
+                      advec_var = advec_var)
+    # [LOOKS FINE]
+
+    ## Create 4 arrays to store the u_edge of the other edge sharing element
+
+    # Left edge
+
+    left_edge_id = 0
+    u_left_other_element = u_at_edge_element_wise(u_e_ij,
+                                                  edge_id = left_edge_id,
+                                                  element_tags = advec_var.interelement_relations[:, left_edge_id],
+                                                  advec_var = advec_var)
+
+    # Bottom edge
+    bottom_edge_id = 1
+    u_bottom_other_element = u_at_edge_element_wise(u_e_ij,
+                                                    edge_id = bottom_edge_id,
+                                                    element_tags = advec_var.interelement_relations[:, bottom_edge_id],
+                                                    advec_var = advec_var)
+
+    # Right edge
+    right_edge_id = 2
+    u_right_other_element = u_at_edge_element_wise(u_e_ij,
+                                                   edge_id = right_edge_id,
+                                                   element_tags = advec_var.interelement_relations[:, right_edge_id],
+                                                   advec_var = advec_var)
+
+    # Top edge
+    top_edge_id = 3
+    u_top_other_element = u_at_edge_element_wise(u_e_ij,
+                                                 edge_id = top_edge_id,
+                                                 element_tags = advec_var.interelement_relations[:, top_edge_id],
+                                                 advec_var = advec_var)
+
+    # [VALUES NOT TESTED]
+    
+    # Find the LF flux for each edge
+
+    # Left edge
+
+    flux_left = wave_equation_2d.F_x(u_left)
+    flux_left_other_element = wave_equation_2d.F_x(u_left_other_element)
+
+    lf_flux_left_edge = lax_friedrichs_flux(u_left_other_element,
+                                            flux_left_other_element,
+                                            u_left, flux_left)
+
+    # Bottom edge
+
+    flux_bottom = wave_equation_2d.F_x(u_bottom)
+    flux_bottom_other_element = wave_equation_2d.F_x(u_bottom_other_element)
+
+    lf_flux_bottom_edge = lax_friedrichs_flux(u_bottom_other_element,
+                                              flux_bottom_other_element,
+                                              u_bottom, flux_bottom)
+
+    # Right edge
+
+    flux_right = wave_equation_2d.F_x(u_right)
+    flux_right_other_element = wave_equation_2d.F_x(u_right_other_element)
+
+    lf_flux_right_edge = lax_friedrichs_flux(u_right, flux_right,
+                                             u_right_other_element,
+                                             flux_right_other_element)
+
+    # Top edge
+
+    flux_top = wave_equation_2d.F_x(u_top)
+    flux_top_other_element = wave_equation_2d.F_x(u_top_other_element)
+
+    lf_flux_top_edge = lax_friedrichs_flux(u_top, flux_top,
+                                           u_top_other_element,
+                                           flux_top_other_element)
+
+    # Store the fluxes in a [N_elements 4 N_LGL 1]
+
+    element_lf_flux = af.constant(0, d0 = params.N_LGL, d1 = advec_var.elements.shape[0], d2 = 4, dtype = af.Dtype.f64)
+
+    element_lf_flux[:, :, left_edge_id]   = lf_flux_left_edge
+    element_lf_flux[:, :, bottom_edge_id] = lf_flux_bottom_edge
+    element_lf_flux[:, :, right_edge_id]  = lf_flux_right_edge
+    element_lf_flux[:, :, top_edge_id]    = lf_flux_top_edge
+
+    element_lf_flux = af.reorder(element_lf_flux, d0 = 1, d1 = 2, d2 = 0)
+    
+    return element_lf_flux
 
 def surface_term_vectorized(u, advec_var):
     '''
@@ -233,7 +511,7 @@ def surface_term_vectorized(u, advec_var):
     dx_dxi  = 0.1
     dy_deta = 0.1
 
-    element_lf_flux = lf_flux_all_edges(u, advec_var)
+    element_lf_flux = lf_flux_all_edges_vectorized(u, advec_var)
 
     # 1. Find L_p(1) and L_p(-1)
     Lp = advec_var.lagrange_coeffs

@@ -67,9 +67,9 @@ total_time_2d = 2.0
 
 volume_integrand_scheme_2d = 'Lobatto'
 
-
-# Periodic boundary conditions for 10x10 mesh
-
+#################################################################
+## Periodic boundary conditions for 10x10 mesh
+#################################################################
 vertical_boundary_elements_pbc   = np.zeros([10, 2], dtype = np.int64)
 horizontal_boundary_elements_pbc = np.zeros([10, 2], dtype = np.int64)
 
@@ -81,7 +81,10 @@ for idx in np.arange(horizontal_boundary_elements_pbc.shape[0]):
     horizontal_boundary_elements_pbc[idx] = np.array([idx, idx + 90])
 print(horizontal_boundary_elements_pbc)
 
+
+#################################################################
 ## Periodic boundary conditions for particle in a rectangle mesh
+#################################################################
 
 ##                                left   right
 #vertical_boundary_elements_pbc = [[0 ,  184],

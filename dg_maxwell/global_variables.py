@@ -208,8 +208,8 @@ class advection_variables:
                                       int(total_time_2d / self.delta_t_2d))
         
         # Applying the periodic boundary conditions
-        self.interelement_relations = msh_parser.interelement_relations(
-            self.elements)
+        self.interelement_relations = af.np_to_af_array(
+            msh_parser.interelement_relations(self.elements))
         
         for vertical_boundary in params.vertical_boundary_elements_pbc:
             self.interelement_relations[vertical_boundary[0],
