@@ -426,28 +426,28 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
 
     left_edge_id = 0
     u_left_other_element = u_at_edge_element_wise(u_e_ij,
-                                                  edge_id = left_edge_id,
+                                                  edge_id = right_edge_id,
                                                   element_tags = advec_var.interelement_relations[:, left_edge_id],
                                                   advec_var = advec_var)
 
     # Bottom edge
     bottom_edge_id = 1
     u_bottom_other_element = u_at_edge_element_wise(u_e_ij,
-                                                    edge_id = bottom_edge_id,
+                                                    edge_id = top_edge_id,
                                                     element_tags = advec_var.interelement_relations[:, bottom_edge_id],
                                                     advec_var = advec_var)
 
     # Right edge
     right_edge_id = 2
     u_right_other_element = u_at_edge_element_wise(u_e_ij,
-                                                   edge_id = right_edge_id,
+                                                   edge_id = left_edge_id,
                                                    element_tags = advec_var.interelement_relations[:, right_edge_id],
                                                    advec_var = advec_var)
 
     # Top edge
     top_edge_id = 3
     u_top_other_element = u_at_edge_element_wise(u_e_ij,
-                                                 edge_id = top_edge_id,
+                                                 edge_id = bottom_edge_id,
                                                  element_tags = advec_var.interelement_relations[:, top_edge_id],
                                                  advec_var = advec_var)
 
@@ -466,8 +466,8 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
 
     # Bottom edge
 
-    flux_bottom = wave_equation_2d.F_x(u_bottom)
-    flux_bottom_other_element = wave_equation_2d.F_x(u_bottom_other_element)
+    flux_bottom = wave_equation_2d.F_y(u_bottom)
+    flux_bottom_other_element = wave_equation_2d.F_y(u_bottom_other_element)
 
     lf_flux_bottom_edge = lax_friedrichs_flux(u_bottom_other_element,
                                               flux_bottom_other_element,
@@ -484,8 +484,8 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
 
     # Top edge
 
-    flux_top = wave_equation_2d.F_x(u_top)
-    flux_top_other_element = wave_equation_2d.F_x(u_top_other_element)
+    flux_top = wave_equation_2d.F_y(u_top)
+    flux_top_other_element = wave_equation_2d.F_y(u_top_other_element)
 
     lf_flux_top_edge = lax_friedrichs_flux(u_top, flux_top,
                                            u_top_other_element,
@@ -513,7 +513,7 @@ def surface_term_vectorized(u, advec_var):
     dx_dxi  = 0.1
     dy_deta = 0.1
 
-    element_lf_flux = lf_flux_all_edges(u, advec_var)
+    element_lf_flux = lf_flux_all_edges_vectorized(u, advec_var)
 
     # 1. Find L_p(1) and L_p(-1)
     Lp = advec_var.lagrange_coeffs

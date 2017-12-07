@@ -11,6 +11,8 @@ device = 0
 af.set_backend(backend)
 af.set_device(device)
 
+af.info()
+
 # The domain of the function.
 x_nodes    = af.np_to_af_array(np.array([-1., 1.]))
 
@@ -55,7 +57,7 @@ c_x = 1.
 ########################################################################
 
 c_x = 1.
-c_y = 0.
+c_y = 1.
 
 courant = 0.1
 
