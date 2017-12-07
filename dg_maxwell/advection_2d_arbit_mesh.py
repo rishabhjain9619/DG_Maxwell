@@ -278,7 +278,8 @@ def u_at_edge_element_wise(u_e_ij, edge_id, element_tags, advec_var,
     return u_edge
 
 
-def u_at_other_element_edge(u_edge_vec, element_edge_id, advec_var):
+def u_at_other_element_edge(u_edge_vec, element_edge_id,
+                            advec_var, unshared_edge_value = 0.):
     '''
     When a ``element_edge_id`` edge is shared between two elements, this
     function finds the edge value of the other element at the shared edge.
@@ -319,7 +320,22 @@ def u_at_other_element_edge(u_edge_vec, element_edge_id, advec_var):
                                         u_edge_other_element_vec)
 
     u_edge_other_element = af.sum(u_edge_other_element, dim = 2)
+
+    select_unshared_edges_0 = af.transpose(
+        advec_var.interelement_relations[:, element_edge_id] != -1)
+
+    select_unshared_edges_1 = af.transpose(
+        advec_var.interelement_relations[:, element_edge_id] == -1)
+
+    u_edge_other_element = af.broadcast(utils.multiply,
+                                        select_unshared_edges_0,
+                                        u_edge_other_element)
     
+    u_edge_other_element = af.broadcast(utils.add,
+                                        select_unshared_edges_1 \
+                                            * unshared_edge_value,
+                                        u_edge_other_element)
+
     return u_edge_other_element
 
 
