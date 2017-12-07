@@ -504,6 +504,8 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
     
     return element_lf_flux
 
+
+
 def surface_term_vectorized(u, advec_var):
     '''
     '''
@@ -511,7 +513,7 @@ def surface_term_vectorized(u, advec_var):
     dx_dxi  = 0.1
     dy_deta = 0.1
 
-    element_lf_flux = lf_flux_all_edges_vectorized(u, advec_var)
+    element_lf_flux = lf_flux_all_edges(u, advec_var)
 
     # 1. Find L_p(1) and L_p(-1)
     Lp = advec_var.lagrange_coeffs
