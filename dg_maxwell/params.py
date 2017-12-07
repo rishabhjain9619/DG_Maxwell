@@ -59,6 +59,8 @@ c_x = 1.
 c_x = 1.
 c_y = 1.
 
+c_lax_2d = c_x
+
 courant = 0.1
 
 mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'

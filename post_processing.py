@@ -91,13 +91,13 @@ def contour_2d(u, index):
     pl.contourf(x_contour, y_contour, u_contour, 200, levels = color_levels, cmap = 'jet')
     pl.gca().set_aspect('equal')
     pl.colorbar()
-    pl.title(r'$t_n$ = %i' % (index))
+    pl.title(r'$t_n$ = %f' % (index * gv.delta_t_2d))
     fig.savefig('results/2D_Wave_images/%04d' %(index) + '.png')
     pl.close('all')
     return
            
 
-for i in trange(1403):
+for i in trange(2806):
     h5py_data = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(1 * i)) + '.hdf5', 'r')
     u_LGL     = af.np_to_af_array(h5py_data['u_i'][:])
     contour_2d(u_LGL, i)
