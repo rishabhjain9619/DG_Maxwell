@@ -192,24 +192,27 @@ class advection_variables:
 
         self.nodes, self.elements = msh_parser.read_order_2_msh(mesh_file)
         
-        new_nodes = self.nodes.copy()
-
-        for node_tag, node in enumerate(nodes):
-            if np.all((node == [-1, 1])) or np.all(node == [-1, -1]) or np.all(node == [1, -1]) or np.all(node == [1, 1]):
-                print(node, '\t vertex')
-                continue
-            if ((node[1] != -1) and (node[1] != 1)):
-                new_nodes[node_tag, 1] += function(node[0])
-            
-            if ((node[0] != -1) and (node[0] != 1)):
-                new_nodes[node_tag, 0] += function(node[1])
-        self.nodes = new_nodes
-        
         #############################################################
+        ## Code to distort the elements by a function
+        #############################################################
+        #new_nodes = self.nodes.copy()
+
+        #for node_tag, node in enumerate(self.nodes):
+            #if np.all((node == [-1, 1])) or np.all(node == [-1, -1]) or np.all(node == [1, -1]) or np.all(node == [1, 1]):
+                #print(node, '\t vertex')
+                #continue
+            #if ((node[1] != -1) and (node[1] != 1)):
+                #new_nodes[node_tag, 1] += function(node[0])
+            
+            #if ((node[0] != -1) and (node[0] != 1)):
+                #new_nodes[node_tag, 0] += function(node[1])
+        #self.nodes = new_nodes
+        #############################################################
+        
+        
         #############################################################
         ## Element reordering for 4x4 non-contiguous mesh
         ## For [TESTING], remove after fixing the bug.
-        #############################################################
         #############################################################
         #elements_reorder_nodes = self.elements[:, :-1].copy()
         
