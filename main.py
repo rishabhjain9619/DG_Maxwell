@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import arrayfire as af
 import numpy as np
@@ -21,6 +23,7 @@ from dg_maxwell import utils
 from dg_maxwell import global_variables
 
 af.set_backend(params.backend)
+af.set_device(params.device)
 
 #print(af.mean(af.abs(advection_2d.u_analytical(0) - params.u_e_ij)))
 

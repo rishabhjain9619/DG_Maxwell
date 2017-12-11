@@ -1,22 +1,20 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+import csv
+sys.path.insert(0, os.path.abspath('../'))
+
 import numpy as np
 import arrayfire as af
-af.set_backend('cpu')
+from tqdm import trange
 
 from dg_maxwell import params
 from dg_maxwell import isoparam
 from dg_maxwell import msh_parser
 from dg_maxwell import lagrange
 from dg_maxwell import utils
-
-from tqdm import trange
-
-import os
-import sys
-import csv
-sys.path.insert(0, os.path.abspath('../'))
 
 af.set_backend(params.backend)
 af.set_device(params.device)

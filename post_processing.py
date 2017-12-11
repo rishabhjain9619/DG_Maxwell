@@ -63,19 +63,19 @@ def contour_2d(u, index):
     '''
     '''
     color_levels = np.linspace(0, 1, 100)
-    u_plot = af.flip(af.moddims(u, params.N_LGL, params.N_LGL, 10, 10), 0)
-    x_plot = af.flip(af.moddims(x_e_ij, params.N_LGL, params.N_LGL, 10, 10), 0)
-    y_plot = af.flip(af.moddims(y_e_ij, params.N_LGL, params.N_LGL, 10, 10), 0)
+    u_plot = af.flip(af.moddims(u, params.N_LGL, params.N_LGL, 4, 4), 0)
+    x_plot = af.flip(af.moddims(x_e_ij, params.N_LGL, params.N_LGL, 4, 4), 0)
+    y_plot = af.flip(af.moddims(y_e_ij, params.N_LGL, params.N_LGL, 4, 4), 0)
 
 
-    x_contour = af.np_to_af_array(np.zeros([params.N_LGL * 10, params.N_LGL * 10]))
-    y_contour = af.np_to_af_array(np.zeros([params.N_LGL * 10, params.N_LGL * 10]))
-    u_contour = af.np_to_af_array(np.zeros([params.N_LGL * 10, params.N_LGL * 10]))
+    x_contour = af.np_to_af_array(np.zeros([params.N_LGL * 4, params.N_LGL * 4]))
+    y_contour = af.np_to_af_array(np.zeros([params.N_LGL * 4, params.N_LGL * 4]))
+    u_contour = af.np_to_af_array(np.zeros([params.N_LGL * 4, params.N_LGL * 4]))
     fig = pl.figure()
     #
-    for i in range(100):
-        p = int(i / 10)
-        q = i - p * 10
+    for i in range(16):
+        p = int(i / 4)
+        q = i - p * 4
         x_contour[p * params.N_LGL:params.N_LGL * (p + 1),\
                   q * params.N_LGL:params.N_LGL * (q + 1)] = x_plot[:, :, q, p]
 
@@ -97,18 +97,18 @@ def contour_2d(u, index):
     return
            
 
-for i in trange(2806):
+for i in trange(1000):
     h5py_data = h5py.File('results/2d_hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(1 * i)) + '.hdf5', 'r')
     u_LGL     = af.np_to_af_array(h5py_data['u_i'][:])
     contour_2d(u_LGL, i)
     #if i > 199 :
         #print(af.mean(af.abs(u_LGL - params.u_e_ij)))
 
-# Creating a folder to store hdf5 files. If it doesn't exist.
-results_directory = 'results/1D_Wave_images'
+## Creating a folder to store hdf5 files. If it doesn't exist.
+#results_directory = 'results/1D_Wave_images'
 
-if not os.path.exists(results_directory):
-    os.makedirs(results_directory)
+#if not os.path.exists(results_directory):
+    #os.makedirs(results_directory)
 
 # The directory where h5py files are stored.
 #h5py_directory = 'results/hdf5_%02d' %int(params.N_LGL)

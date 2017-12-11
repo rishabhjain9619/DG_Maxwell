@@ -25,6 +25,8 @@ def A_matrix(advec_var):
 
     return A_ij
 
+
+
 def volume_integral(u, advec_var):
     '''
     Vectorize, p, q, moddims.
@@ -88,6 +90,7 @@ def lax_friedrichs_flux(u_n, F_n, u_n_plus_1, F_n_plus_1):
     return lf_flux
 
 
+
 def u_at_edge_old(u_e_ij, edge_id):
     '''
     Finds the :math:`u` at given edge id for :math:`u_{eij}`.
@@ -113,6 +116,8 @@ def u_at_edge_old(u_e_ij, edge_id):
         return
     
     return
+
+
 
 def u_at_edge(u_e_ij, edge_id, advec_var):
     '''
@@ -188,6 +193,7 @@ def u_at_edge(u_e_ij, edge_id, advec_var):
         return u_edge
 
     return
+
 
 
 def u_at_edge_element_wise(u_e_ij, edge_id, element_tags, advec_var,
@@ -278,6 +284,7 @@ def u_at_edge_element_wise(u_e_ij, edge_id, element_tags, advec_var,
     return u_edge
 
 
+
 def u_at_other_element_edge(u_edge_vec, element_edge_id,
                             advec_var, unshared_edge_value = 0.):
     '''
@@ -337,6 +344,7 @@ def u_at_other_element_edge(u_edge_vec, element_edge_id,
                                         u_edge_other_element)
 
     return u_edge_other_element
+
 
 
 def lf_flux_all_edges(u, advec_var):
@@ -446,6 +454,7 @@ def lf_flux_all_edges(u, advec_var):
     print('Done')
     
     return element_lf_flux
+
 
 
 #def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
@@ -666,7 +675,9 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
 
     # Store the fluxes in a [N_elements 4 N_LGL 1]
 
-    element_lf_flux = af.constant(0, d0 = params.N_LGL, d1 = advec_var.elements.shape[0], d2 = 4, dtype = af.Dtype.f64)
+    element_lf_flux = af.constant(0, d0 = params.N_LGL,
+                                  d1 = advec_var.elements.shape[0],
+                                  d2 = 4, dtype = af.Dtype.f64)
 
     element_lf_flux[:, :, left_edge_id]   = lf_flux_left_edge
     element_lf_flux[:, :, bottom_edge_id] = lf_flux_bottom_edge
@@ -676,6 +687,7 @@ def lf_flux_all_edges_vectorized(u_e_ij, advec_var):
     element_lf_flux = af.reorder(element_lf_flux, d0 = 1, d1 = 2, d2 = 0)
     
     return element_lf_flux
+
 
 
 def surface_term_vectorized(u, advec_var):

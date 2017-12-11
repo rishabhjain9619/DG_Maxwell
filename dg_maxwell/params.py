@@ -57,33 +57,34 @@ c_x = 1.
 ########################################################################
 
 c_x = 1.
-c_y = 1.
+c_y = 0.
 
 c_lax_2d = c_x
 
 courant = 0.1
 
-mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'
-#mesh_file = 'examples/read_and_plot_mesh/mesh/square_mesh_4_parts.msh'
+#mesh_file = 'examples/read_and_plot_mesh/mesh/square_10_10.msh'
+#mesh_file = 'examples/read_and_plot_mesh/mesh/square_contiguous_4_4.msh'
+mesh_file = 'examples/read_and_plot_mesh/mesh/square_mesh_4_parts.msh'
 #mesh_file = 'examples/read_and_plot_mesh/mesh/particle_in_rectangle.msh'
 
 total_time_2d = 2.0
 
 volume_integrand_scheme_2d = 'Lobatto'
 
-#################################################################
-## Periodic boundary conditions for 10x10 mesh
-#################################################################
-vertical_boundary_elements_pbc   = np.zeros([10, 2], dtype = np.int64)
-horizontal_boundary_elements_pbc = np.zeros([10, 2], dtype = np.int64)
+##################################################################
+### Periodic boundary conditions for 10x10 mesh
+##################################################################
+#vertical_boundary_elements_pbc   = np.zeros([10, 2], dtype = np.int64)
+#horizontal_boundary_elements_pbc = np.zeros([10, 2], dtype = np.int64)
 
-for idx in np.arange(vertical_boundary_elements_pbc.shape[0]):
-    vertical_boundary_elements_pbc[idx] = np.array([idx * 10, idx * 10 + 9])
-print(vertical_boundary_elements_pbc)
+#for idx in np.arange(vertical_boundary_elements_pbc.shape[0]):
+    #vertical_boundary_elements_pbc[idx] = np.array([idx * 10, idx * 10 + 9])
+#print(vertical_boundary_elements_pbc)
 
-for idx in np.arange(horizontal_boundary_elements_pbc.shape[0]):
-    horizontal_boundary_elements_pbc[idx] = np.array([idx, idx + 90])
-print(horizontal_boundary_elements_pbc)
+#for idx in np.arange(horizontal_boundary_elements_pbc.shape[0]):
+    #horizontal_boundary_elements_pbc[idx] = np.array([idx, idx + 90])
+#print(horizontal_boundary_elements_pbc)
 
 
 #################################################################
@@ -129,9 +130,9 @@ print(horizontal_boundary_elements_pbc)
 #horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
 
 
-######################################################################
-### Periodic boundary conditions for square 10x10 non-contiguous mesh
-######################################################################
+#####################################################################
+## Periodic boundary conditions for square 10x10 non-contiguous mesh
+#####################################################################
 
 #vertical_boundary_elements_pbc = [[ 0,  99],
                                   #[ 5,  94],
@@ -157,5 +158,24 @@ print(horizontal_boundary_elements_pbc)
                                     #[97,  60],
                                     #[98,  65],
                                     #[99,  70]]
+
+#horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
+
+#####################################################################
+## Periodic boundary conditions for square 4x4 non-contiguous mesh
+#####################################################################
+
+#vertical_boundary_elements_pbc = [[ 0,  15],
+                                  #[ 2,  13],
+                                  #[ 4,  11],
+                                  #[ 6,  10]]
+
+#vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
+
+
+#horizontal_boundary_elements_pbc = [[ 0,   6],
+                                    #[ 1,   7],
+                                    #[14,   8],
+                                    #[15,  10]]
 
 #horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
