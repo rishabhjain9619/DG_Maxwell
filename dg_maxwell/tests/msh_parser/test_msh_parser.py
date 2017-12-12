@@ -9,7 +9,9 @@ import arrayfire as af
 import numpy as np
 
 from dg_maxwell import msh_parser
+from dg_maxwell import utils
 from dg_maxwell import params
+from dg_maxwell import global_variables as gvar
 
 af.set_backend(params.backend)
 af.set_device(params.device)
@@ -108,3 +110,27 @@ def test_interelement_relations():
     interelement_relations = msh_parser.interelement_relations(elements)
     
     assert np.all(interelement_relations == ref_interelement_relations)
+
+
+def test_rearrange_element_edges():
+    '''
+    Tests the :py:meth:`dg_maxwell.msh_parser.rearrange_element_edges`
+    function with the manually found value of the ``elements`` array.
+    '''
+    threshold = 1e-12
+    
+    reordered_element_tags_ref = af.np_to_af_array(utils.csv_to_numpy(
+        'dg_maxwell/tests/msh_parser/data/irregular_mesh_non_contiguous_edge_reordered.csv'))
+
+    params.mesh_file = 'dg_maxwell/tests/msh_parser/mesh/irregular_mesh_2.msh'
+    advec_var = gvar.advection_variables(params.N_LGL, params.N_quad,
+                                         params.x_nodes, params.N_Elements,
+                                         params.c, params.total_time, params.wave,
+                                         params.c_x, params.c_y, params.courant,
+                                         params.mesh_file, params.total_time_2d)
+
+    reordered_element_tags_test = af.np_to_af_array(msh_parser.rearrange_element_edges(
+        advec_var.elements, advec_var))
+
+    assert af.all_true(af.abs(reordered_element_tags_ref \
+                            - reordered_element_tags_test) < threshold)
