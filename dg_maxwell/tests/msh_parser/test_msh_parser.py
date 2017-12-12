@@ -131,6 +131,8 @@ def test_rearrange_element_edges():
 
     reordered_element_tags_test = af.np_to_af_array(msh_parser.rearrange_element_edges(
         advec_var.elements, advec_var))
-
+    
+    print(reordered_element_tags_test)
+    
     assert af.all_true(af.abs(reordered_element_tags_ref \
                             - reordered_element_tags_test) < threshold)
