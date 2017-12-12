@@ -191,7 +191,7 @@ class advection_variables:
         self.c_lax_2d_y = c_y
 
         self.nodes, self.elements = msh_parser.read_order_2_msh(mesh_file)
-        
+
         ##############################################################
         ### Code to distort the elements by a function
         ##############################################################
@@ -345,4 +345,10 @@ class advection_variables:
         print('advection_variables __init__ completed')
         
         return
-    
+
+    def reassign_2d_elements(self, elements):
+        '''
+        '''
+        self.elements = elements
+
+        return
