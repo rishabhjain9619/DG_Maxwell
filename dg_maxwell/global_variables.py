@@ -195,18 +195,18 @@ class advection_variables:
         #############################################################
         ## Code to distort the elements by a function
         #############################################################
-        #new_nodes = self.nodes.copy()
+        new_nodes = self.nodes.copy()
 
-        #for node_tag, node in enumerate(self.nodes):
-            #if np.all((node == [-1, 1])) or np.all(node == [-1, -1]) or np.all(node == [1, -1]) or np.all(node == [1, 1]):
-                #print(node, '\t vertex')
-                #continue
-            #if ((node[1] != -1) and (node[1] != 1)):
-                #new_nodes[node_tag, 1] += function(node[0])
+        for node_tag, node in enumerate(self.nodes):
+            if np.all((node == [-1, 1])) or np.all(node == [-1, -1]) or np.all(node == [1, -1]) or np.all(node == [1, 1]):
+                print(node, '\t vertex')
+                continue
+            if ((node[1] != -1) and (node[1] != 1)):
+                new_nodes[node_tag, 1] += function(node[0])
             
-            #if ((node[0] != -1) and (node[0] != 1)):
-                #new_nodes[node_tag, 0] += function(node[1])
-        #self.nodes = new_nodes
+            if ((node[0] != -1) and (node[0] != 1)):
+                new_nodes[node_tag, 0] += function(node[1])
+        self.nodes = new_nodes
         #############################################################
         
         

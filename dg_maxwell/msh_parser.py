@@ -9,6 +9,7 @@ import arrayfire as af
 from dg_maxwell import isoparam
 from dg_maxwell import utils
 from dg_maxwell import params
+from dg_maxwell import advection_2d_arbit_mesh as a2d_arbit_mesh
 
 af.set_backend(params.backend)
 af.set_device(params.device)
@@ -412,3 +413,276 @@ def interelement_relations(elements):
     
     return element_relations
 
+
+
+def identify_element_physical_edges(elements, advec_var):
+    '''
+    For an element it tdentifies the left, bottom, right,
+    and top edges physically. It assigns each edge of an
+    element an id depending on the table shown below.
+    +-------------+----------------------+
+    | **Edge**    | **Assigned Edge ID** |
+    +-------------+----------------------+
+    | Left Edge   | :math:`0`            |
+    +-------------+----------------------+
+    | Bottom Edge | :math:`1`            |
+    +-------------+----------------------+
+    | Right Edge  | :math:`2`            |
+    +-------------+----------------------+
+    | Top Edge    | :math:`3`            |
+    +-------------+----------------------+
+    
+    Parameters
+    ----------
+    elements : np.array([N_elements 9], dtype = np.int)
+               The element array returned by
+               :py:meth:`dg_maxwell.msh_parser.read_order_2_msh`.
+
+    advec_var : :py:meth:`dg_maxwell.global_variables.advection_variables`
+
+    Returns
+    -------
+    physical_edge_identity : af.Array([N_elements 4 1 1], dtype = af.Dtype.int64)
+                             The physical edge id for each edge of each elements.
+                             See table above.
+    '''
+    x_edge = af.constant(0., d0 = advec_var.elements.shape[0],
+                         d1 = params.N_LGL, d2 = 4, dtype = af.Dtype.f64)
+    y_edge = af.constant(0., d0 = advec_var.elements.shape[0],
+                         d1 = params.N_LGL, d2 = 4, dtype = af.Dtype.f64)
+
+    for edge_id in np.arange(4):
+        x_edge[:, :, edge_id] = af.transpose(
+            a2d_arbit_mesh.u_at_edge(advec_var.x_e_ij,
+                                     edge_id, advec_var))
+        y_edge[:, :, edge_id] = af.transpose(
+            a2d_arbit_mesh.u_at_edge(advec_var.y_e_ij,
+                                     edge_id, advec_var))
+
+
+    ###################################################################################
+
+    x_edge_c = af.mean(x_edge, dim = 1)
+    y_edge_c = af.mean(y_edge, dim = 1)
+
+    x_quad_c = af.mean(af.mean(x_edge, dim = 1), dim = 2)
+    y_quad_c = af.mean(af.mean(y_edge, dim = 1), dim = 2)
+
+    ###################################################################################
+
+    delta_x_edge_c = af.reorder(af.broadcast(utils.add, x_edge_c, -x_quad_c),
+                                d0 = 0, d1 = 2, d2 = 1)
+    delta_y_edge_c = af.reorder(af.broadcast(utils.add, y_edge_c, -y_quad_c),
+                                d0 = 0, d1 = 2, d2 = 1)
+
+    ###################################################################################
+
+    delta_xy_complex = np.array(delta_x_edge_c + 1j * delta_y_edge_c)
+
+    ###################################################################################
+
+    edge_angle = af.np_to_af_array(np.angle(delta_xy_complex, deg = True))
+    angle_less_than_zero = af.cast(edge_angle < 0, dtype = af.Dtype.f64)
+    edge_angle = edge_angle + angle_less_than_zero * 360
+
+    ###################################################################################
+
+    # Identifying physical right edges
+    physical_right_edge = (edge_angle >= 315.) * (edge_angle <= 360) + (edge_angle >= 0.) * (edge_angle <= 45)
+
+    # Identifying physical top edges
+    physical_top_edge = (edge_angle >= 45) * (edge_angle <= 135)
+
+    # Identifying physical left edges
+    physical_left_edge = (edge_angle >= 135) * (edge_angle <= 225)
+
+    # Identifying physical left edges
+    physical_bottom_edge = (edge_angle >= 225) * (edge_angle < 315)
+
+    ###################################################################################
+
+    physical_edge_identity = physical_left_edge   * 1 \
+                           + physical_bottom_edge * 2 \
+                           + physical_right_edge  * 3 \
+                           + physical_top_edge    * 4 \
+                           - 1
+
+    return physical_edge_identity
+
+
+
+def get_edge_nodes(elements, element_tag, edge_id):
+    '''
+    Gives the edge nodes of an element for an edge id.
+    To find what each edge id represents, see this
+    :py:meth:`dg_maxwell.msh_parser.edge_location`.
+    
+    Parameters
+    ----------
+    elements : np.array([N_elements 9], dtype = np.int)
+               The element array returned by
+               :py:meth:`dg_maxwell.msh_parser.read_order_2_msh`.
+
+    element_tag : unsigned int
+                  The element tag for which an edge has to be returned.
+
+    edge_id : unsigned int
+              The edge to look for in an element
+
+    Return
+    ------
+    edge_nodes_tag : np.Array([3], dtype= np.int64)
+                     The node tag which makes up an edge.
+    '''
+    edge_nodes_tag = None
+    
+    if edge_id < 3:
+        edge_nodes_tag =  elements[element_tag, edge_id * 2:(edge_id * 2 + 3)]
+    else:
+        edge_nodes_tag = np.append(elements[element_tag, edge_id * 2:(edge_id * 2 + 2)],
+                                   elements[element_tag, 0])
+    
+    return edge_nodes_tag
+
+
+def edge_nodes_reordered(elements, element_tag, edge_id,
+                         return_as_edge, advec_var):
+    '''
+    Finds the edge nodes of an element and reorders the nodes of an edge
+    according to the requested ``return_as_edge`` variable.
+    
+    Parameters
+    ----------
+    elements : np.array([N_elements 9], dtype = np.int)
+               The element array returned by
+               :py:meth:`dg_maxwell.msh_parser.read_order_2_msh`.
+
+    element_tag : unsigned int
+                  The element tag for which an edge has to be returned.
+
+    edge_id : unsigned int
+              The edge to look for in an element
+
+    return_as_edge : unsigned int
+                     The edge as which the ``edge_id`` edge
+                     has to be returned.
+
+    advec_var : :py:meth:`dg_maxwell.global_variables.advection_variables`
+
+    Returns
+    -------
+    edge_nodes_tag : np.Array([3], dtype= np.int64)
+                     The edge with the rearranged node order.
+    '''
+
+    edge_nodes_tag = get_edge_nodes(elements, element_tag, edge_id)
+
+    # Left edge case
+    if return_as_edge == 0:
+
+        # Rearrange the left edge nodes
+        element_tag_left_edge = edge_nodes_tag
+
+        # Arrange the nodes for left nodes
+        y_nodes = advec_var.nodes[element_tag_left_edge][:, 1]
+
+        y_nodes_dic_node_tag = np.zeros([y_nodes.shape[0], 2])
+        y_nodes_dic_node_tag[:, 0] = y_nodes
+        y_nodes_dic_node_tag[:, 1] = element_tag_left_edge
+
+        y_nodes_argsort = np.argsort(y_nodes_dic_node_tag, axis = 0)
+        left_edge_nodes = np.flipud(element_tag_left_edge[y_nodes_argsort[:, 0]])
+
+        edge_nodes_tag = left_edge_nodes
+
+    # Bottom edge case
+    if return_as_edge == 1:
+        # Rearrange the bottom edge nodes.
+        element_tag_bottom_edge = edge_nodes_tag
+
+        # Arrange the nodes for bottom nodes
+        x_nodes = advec_var.nodes[element_tag_bottom_edge][:, 0]
+
+        x_nodes_dic_node_tag = np.zeros([x_nodes.shape[0], 2])
+        x_nodes_dic_node_tag[:, 0] = x_nodes
+        x_nodes_dic_node_tag[:, 1] = element_tag_bottom_edge
+
+        x_nodes_argsort = np.argsort(x_nodes_dic_node_tag, axis = 0)
+        bottom_edge_nodes = element_tag_bottom_edge[x_nodes_argsort[:, 0]]
+        
+        edge_nodes_tag = bottom_edge_nodes
+
+    # Right edge case
+    if return_as_edge == 2:
+        # Rearrange the right edge nodes
+        element_tag_right_edge = edge_nodes_tag
+
+        # Arrange the nodes for right nodes
+        y_nodes = advec_var.nodes[element_tag_right_edge][:, 1]
+
+        y_nodes_dic_node_tag = np.zeros([y_nodes.shape[0], 2])
+        y_nodes_dic_node_tag[:, 0] = y_nodes
+        y_nodes_dic_node_tag[:, 1] = element_tag_right_edge
+
+        y_nodes_argsort = np.argsort(y_nodes_dic_node_tag, axis = 0)
+        right_edge_nodes = element_tag_right_edge[y_nodes_argsort[:, 0]]
+
+        edge_nodes_tag = right_edge_nodes
+
+    # Top edge case
+    if return_as_edge == 3:
+        # Rearrange the right edge nodes
+        element_tag_top_edge = edge_nodes_tag
+
+        # Arrange the nodes for top nodes
+        x_nodes = advec_var.nodes[element_tag_top_edge][:, 0]
+
+        x_nodes_dic_node_tag = np.zeros([x_nodes.shape[0], 2])
+        x_nodes_dic_node_tag[:, 0] = x_nodes
+        x_nodes_dic_node_tag[:, 1] = element_tag_top_edge
+
+        x_nodes_argsort = np.argsort(x_nodes_dic_node_tag, axis = 0)
+        top_edge_nodes = np.flipud(element_tag_top_edge[x_nodes_argsort[:, 0]])
+        
+        edge_nodes_tag = top_edge_nodes
+
+    return edge_nodes_tag
+
+
+def rearrange_element_edges(elements, advec_var):
+    '''
+    In a mesh read from mesh parser none of the edge have the sense of the
+    their physical identity, i.e., they don't know whether they are left,
+    bottom, right and top edge. This function reads the original mesh and
+    rearranges the nodes of an element such that the first edge is always
+    the physically located left edge, second edge is the physically located
+    bottom edge, third edge is the physically located right edge, and the
+    fourth edge is the physically located top edge.
+    
+    Parameters
+    ----------
+    elements : np.array([N_elements 9], dtype = np.int)
+               The element array returned by
+               :py:meth:`dg_maxwell.msh_parser.read_order_2_msh`.
+
+    advec_var : :py:meth:`dg_maxwell.global_variables.advection_variables`
+
+    Returns
+    -------
+    new_element_edge_ordering : np.Array(advec_var.elements.shape, dtype = np.int64)
+                                Elements with reordered edges.
+    '''
+    new_element_edge_ordering = np.zeros(advec_var.elements.shape, dtype = np.int64)
+    edge_reorder = identify_element_physical_edges(elements, advec_var)
+
+    for element_tag in np.arange(advec_var.elements.shape[0]):
+        for edge_id in np.arange(4):
+            return_as_edge_id = int(af.sum(edge_reorder[element_tag, edge_id]))
+            new_element_edge_ordering[
+                element_tag,
+                return_as_edge_id * 2:(return_as_edge_id * 2 + 3)] = \
+                    edge_nodes_reordered(elements, element_tag, edge_id,
+                                         af.sum(edge_reorder[element_tag, edge_id]),
+                                         advec_var = advec_var)
+    
+    return new_element_edge_ordering
