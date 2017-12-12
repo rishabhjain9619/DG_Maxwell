@@ -420,6 +420,7 @@ def identify_element_physical_edges(elements, advec_var):
     For an element it tdentifies the left, bottom, right,
     and top edges physically. It assigns each edge of an
     element an id depending on the table shown below.
+
     +-------------+----------------------+
     | **Edge**    | **Assigned Edge ID** |
     +-------------+----------------------+
