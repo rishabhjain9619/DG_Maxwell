@@ -179,7 +179,7 @@ class advection_variables:
 
         self.dLp_Lq = self.Lq_eta_ij * self.dLp_xi_ij
         self.dLq_Lp = self.Lp_xi_ij  * self.dLq_eta_ij
-        
+
         self.Li_Lj_coeffs = wave_equation_2d.Li_Lj_coeffs(N_LGL)
 
         self.delta_y = self.delta_x
@@ -229,7 +229,7 @@ class advection_variables:
         #self.elements[:, :-1] = elements_reorder_nodes
         #############################################################
         #############################################################
-        
+
         self.x_e_ij = af.np_to_af_array(np.zeros([N_LGL * N_LGL,
                                                   len(self.elements)]))
         self.y_e_ij = af.np_to_af_array(np.zeros([N_LGL * N_LGL,
@@ -252,7 +252,7 @@ class advection_variables:
         # Applying the periodic boundary conditions
         self.interelement_relations = af.np_to_af_array(
             msh_parser.interelement_relations(self.elements))
-        
+
         ###Code to apply periodic BC for square 10x10 contiguous case.
         #for vertical_boundary in params.vertical_boundary_elements_pbc:
             #self.interelement_relations[vertical_boundary[0],
@@ -266,13 +266,13 @@ class advection_variables:
                                             #3] = horizontal_boundary[1]
                 #self.interelement_relations[horizontal_boundary[1],
                                             #1] = horizontal_boundary[0]
-                
+
             #else:
                 #self.interelement_relations[horizontal_boundary[0],
                                             #3] = horizontal_boundary[1]
                 #self.interelement_relations[horizontal_boundary[1],
                                             #3] = horizontal_boundary[0]
-        
+
         ################################################################
         ###Code to apply periodic BC for square 4x4 non-contiguous case.
         ################################################################
@@ -348,7 +348,48 @@ class advection_variables:
 
     def reassign_2d_elements(self, elements):
         '''
+        Modifier function for ``self.elements`` variables.
         '''
         self.elements = elements
+        
+        self.x_e_ij = af.np_to_af_array(np.zeros([params.N_LGL * params.N_LGL,
+                                                  len(self.elements)]))
+        self.y_e_ij = af.np_to_af_array(np.zeros([params.N_LGL * params.N_LGL,
+                                                  len(self.elements)]))
 
+        for element_tag, element in enumerate(self.elements):
+            self.x_e_ij[:, element_tag] = isoparam.isoparam_x_2D(
+                self.nodes[element, 0], self.xi_i, self.eta_j)
+            self.y_e_ij[:, element_tag] = isoparam.isoparam_y_2D(
+                self.nodes[element, 1], self.xi_i, self.eta_j)
+
+        self.u_e_ij = np.e**(-((self.x_e_ij - (0)) ** 2 + self.y_e_ij ** 2) / 0.4**2)
+        #af.sin(self.x_e_ij * 2 * np.pi + self.y_e_ij * 4 * np.pi)
+
+        # Array of timesteps seperated by delta_t.
+        self.time_2d = utils.linspace(0, int(params.total_time_2d / self.delta_t_2d)
+                                      * self.delta_t_2d,
+                                      int(params.total_time_2d / self.delta_t_2d))
+
+        # Applying the periodic boundary conditions
+        self.interelement_relations = af.np_to_af_array(
+            msh_parser.interelement_relations(self.elements))
+
+        ################################################################
+        ###Code to apply periodic BC for square 4x4 non-contiguous case.
+        ################################################################
+        for vertical_boundary in params.vertical_boundary_elements_pbc:
+            self.interelement_relations[vertical_boundary[0],
+                                        0] = vertical_boundary[1]
+            self.interelement_relations[vertical_boundary[1],
+                                        2] = vertical_boundary[0]
+
+        for horizontal_boundary in params.horizontal_boundary_elements_pbc:
+            self.interelement_relations[horizontal_boundary[0], 3] = \
+                horizontal_boundary[1]
+            self.interelement_relations[horizontal_boundary[1], 1] = \
+                horizontal_boundary[0]
+        
+        print(self.interelement_relations)
+        
         return

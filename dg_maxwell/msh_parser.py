@@ -674,6 +674,7 @@ def rearrange_element_edges(elements, advec_var):
                                 Elements with reordered edges.
     '''
     new_element_edge_ordering = np.zeros(advec_var.elements.shape, dtype = np.int64)
+    
     edge_reorder = identify_element_physical_edges(elements, advec_var)
 
     for element_tag in np.arange(advec_var.elements.shape[0]):
@@ -685,5 +686,7 @@ def rearrange_element_edges(elements, advec_var):
                     edge_nodes_reordered(elements, element_tag, edge_id,
                                          af.sum(edge_reorder[element_tag, edge_id]),
                                          advec_var = advec_var)
+    
+    new_element_edge_ordering[:, -1] = elements[:, -1]
     
     return new_element_edge_ordering

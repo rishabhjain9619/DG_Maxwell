@@ -670,3 +670,4 @@ def centroid(x_nodes, y_nodes):
         :math:`(x, y)` coordinates of the centroid
     '''
     return (np.mean(x_nodes), np.mean(y_nodes))
+

@@ -134,32 +134,32 @@ volume_integrand_scheme_2d = 'Lobatto'
 ## Periodic boundary conditions for square 10x10 non-contiguous mesh
 #####################################################################
 
-#vertical_boundary_elements_pbc = [[ 0,  99],
-                                  #[ 5,  94],
-                                  #[10,  89],
-                                  #[15,  84],
-                                  #[20,  79],
-                                  #[25,  74],
-                                  #[30,  73],
-                                  #[35,  72],
-                                  #[40,  71],
-                                  #[45,  70]]
+vertical_boundary_elements_pbc = [[ 0,  99],
+                                  [ 5,  94],
+                                  [10,  89],
+                                  [15,  84],
+                                  [20,  79],
+                                  [25,  74],
+                                  [30,  73],
+                                  [35,  72],
+                                  [40,  71],
+                                  [45,  70]]
 
-#vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
+vertical_boundary_elements_pbc = np.array(vertical_boundary_elements_pbc)
 
 
-#horizontal_boundary_elements_pbc = [[ 0,  45],
-                                    #[ 1,  46],
-                                    #[ 2,  47],
-                                    #[ 3,  48],
-                                    #[ 4,  49],
-                                    #[95,  50],
-                                    #[96,  55],
-                                    #[97,  60],
-                                    #[98,  65],
-                                    #[99,  70]]
+horizontal_boundary_elements_pbc = [[ 0,  45],
+                                    [ 1,  46],
+                                    [ 2,  47],
+                                    [ 3,  48],
+                                    [ 4,  49],
+                                    [95,  50],
+                                    [96,  55],
+                                    [97,  60],
+                                    [98,  65],
+                                    [99,  70]]
 
-#horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
+horizontal_boundary_elements_pbc = np.array(horizontal_boundary_elements_pbc)
 
 #####################################################################
 ## Periodic boundary conditions for square 4x4 non-contiguous mesh
