@@ -217,6 +217,9 @@ examples/results
 !examples/lagrange_interpolation_general/*
 !examples/read_and_plot_particle_in_rectangle_u_eij/*
 !examples/particle_in_rectangle/debug/*
+!examples/advection_2d_arbit_mesh/debug/*
+!examples/advection_2d_arbit_mesh/*
+!examples/advection_2d_arbit_mesh/non_contiguous_debug/*
 
 *.kate-swp
 
