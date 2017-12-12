@@ -221,6 +221,8 @@ examples/results
 !examples/advection_2d_arbit_mesh/*
 !examples/advection_2d_arbit_mesh/non_contiguous_debug/*
 !examples/read_and_plot_mesh/particle_in_rectangle/*
+!examples/read_and_plot_mesh/particle_in_rectangle/debug/*
+!examples/read_and_plot_mesh/particle_in_rectangle/non_contiguous_debug/*
 
 *.kate-swp
 
