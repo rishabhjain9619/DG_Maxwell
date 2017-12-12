@@ -150,10 +150,6 @@ class advection_variables:
 
 
 
-        # The parameters below are for 2D advection
-        # -----------------------------------------
-
-
         ########################################################################
         #######################2D Wave Equation#################################
         ########################################################################
@@ -192,44 +188,6 @@ class advection_variables:
 
         self.nodes, self.elements = msh_parser.read_order_2_msh(mesh_file)
 
-        ##############################################################
-        ### Code to distort the elements by a function
-        ##############################################################
-        #new_nodes = self.nodes.copy()
-
-        #for node_tag, node in enumerate(self.nodes):
-            #if np.all((node == [-1, 1])) or np.all(node == [-1, -1]) or np.all(node == [1, -1]) or np.all(node == [1, 1]):
-                #print(node, '\t vertex')
-                #continue
-            #if ((node[1] != -1) and (node[1] != 1)):
-                #new_nodes[node_tag, 1] += function(node[0])
-            
-            #if ((node[0] != -1) and (node[0] != 1)):
-                #new_nodes[node_tag, 0] += function(node[1])
-        #self.nodes = new_nodes
-        #############################################################
-        
-        
-        #############################################################
-        ## Element reordering for 4x4 non-contiguous mesh
-        ## For [TESTING], remove after fixing the bug.
-        #############################################################
-        #elements_reorder_nodes = self.elements[:, :-1].copy()
-        
-        #for element_tag in np.arange(8, 12):
-            #elements_reorder_nodes[element_tag] = \
-                #np.roll(elements_reorder_nodes[element_tag], 2)
-
-        #for element_tag in np.arange(12, 16):
-            #elements_reorder_nodes[element_tag] = \
-                #np.flip(elements_reorder_nodes[element_tag], axis = 0)
-            #elements_reorder_nodes[element_tag] = \
-                #np.roll(elements_reorder_nodes[element_tag], 3)
-
-        #self.elements[:, :-1] = elements_reorder_nodes
-        #############################################################
-        #############################################################
-
         self.x_e_ij = af.np_to_af_array(np.zeros([N_LGL * N_LGL,
                                                   len(self.elements)]))
         self.y_e_ij = af.np_to_af_array(np.zeros([N_LGL * N_LGL,
@@ -253,94 +211,6 @@ class advection_variables:
         self.interelement_relations = af.np_to_af_array(
             msh_parser.interelement_relations(self.elements))
 
-        ###Code to apply periodic BC for square 10x10 contiguous case.
-        #for vertical_boundary in params.vertical_boundary_elements_pbc:
-            #self.interelement_relations[vertical_boundary[0],
-                                        #0] = vertical_boundary[1]
-            #self.interelement_relations[vertical_boundary[1],
-                                        #2] = vertical_boundary[0]
-
-        #for horizontal_boundary in params.horizontal_boundary_elements_pbc:
-            #if horizontal_boundary[1] < 110:
-                #self.interelement_relations[horizontal_boundary[0],
-                                            #3] = horizontal_boundary[1]
-                #self.interelement_relations[horizontal_boundary[1],
-                                            #1] = horizontal_boundary[0]
-
-            #else:
-                #self.interelement_relations[horizontal_boundary[0],
-                                            #3] = horizontal_boundary[1]
-                #self.interelement_relations[horizontal_boundary[1],
-                                            #3] = horizontal_boundary[0]
-
-        ################################################################
-        ###Code to apply periodic BC for square 4x4 non-contiguous case.
-        ################################################################
-        #for vertical_boundary in params.vertical_boundary_elements_pbc:
-            #self.interelement_relations[vertical_boundary[0],
-                                        #0] = vertical_boundary[1]
-            #self.interelement_relations[vertical_boundary[1],
-                                        #2] = vertical_boundary[0]
-
-        #for horizontal_boundary in params.horizontal_boundary_elements_pbc:
-            #self.interelement_relations[horizontal_boundary[0], 3] = \
-                #horizontal_boundary[1]
-            #self.interelement_relations[horizontal_boundary[1], 1] = \
-                #horizontal_boundary[0]
-
-        ### Code to apply BC for 4x4 contiguous case
-        ## Vertical boundary conditions
-        #self.interelement_relations[0, 0] = 3
-        #self.interelement_relations[3, 2] = 0
-
-        #self.interelement_relations[4, 0] = 7
-        #self.interelement_relations[7, 2] = 4
-
-        #self.interelement_relations[8, 0] = 11
-        #self.interelement_relations[11, 2] = 8
-
-        #self.interelement_relations[12, 0] = 15
-        #self.interelement_relations[15, 2] = 12
-
-
-        ## Horizontal boundary conditions
-        #self.interelement_relations[0, 3] = 12
-        #self.interelement_relations[12, 1] = 0
-
-        #self.interelement_relations[1, 3] = 13
-        #self.interelement_relations[13, 1] = 1
-
-        #self.interelement_relations[2, 3] = 14
-        #self.interelement_relations[14, 1] = 2
-
-        #self.interelement_relations[3, 3] = 15
-        #self.interelement_relations[15, 1] = 3
-
-        # Code to apply periodic BC for square 4x4 non-contiguous case.
-
-        #self.interelement_relations[0, 0] = 15
-        #self.interelement_relations[15, 2] = 0
-
-        #self.interelement_relations[2, 0] = 13
-        #self.interelement_relations[13, 2] = 2
-
-        #self.interelement_relations[4, 0] = 11
-        #self.interelement_relations[11, 1] = 4
-
-        #self.interelement_relations[6, 0] = 10
-        #self.interelement_relations[10, 1] = 6
-
-        #self.interelement_relations[0, 3] = 6
-        #self.interelement_relations[6, 1] = 0
-
-        #self.interelement_relations[1, 3] = 7
-        #self.interelement_relations[7, 1] = 1
-
-        #self.interelement_relations[14, 1] = 8
-        #self.interelement_relations[8, 0] = 14
-
-        #self.interelement_relations[15, 1] = 10
-        #self.interelement_relations[10, 0] = 15
 
         print('advection_variables __init__ completed')
         
@@ -378,18 +248,18 @@ class advection_variables:
         ################################################################
         ###Code to apply periodic BC for square 4x4 non-contiguous case.
         ################################################################
-        for vertical_boundary in params.vertical_boundary_elements_pbc:
-            self.interelement_relations[vertical_boundary[0],
-                                        0] = vertical_boundary[1]
-            self.interelement_relations[vertical_boundary[1],
-                                        2] = vertical_boundary[0]
+        if params.vertical_boundary_elements_pbc is not None:
+            for vertical_boundary in params.vertical_boundary_elements_pbc:
+                self.interelement_relations[vertical_boundary[0],
+                                            0] = vertical_boundary[1]
+                self.interelement_relations[vertical_boundary[1],
+                                            2] = vertical_boundary[0]
 
-        for horizontal_boundary in params.horizontal_boundary_elements_pbc:
-            self.interelement_relations[horizontal_boundary[0], 3] = \
-                horizontal_boundary[1]
-            self.interelement_relations[horizontal_boundary[1], 1] = \
-                horizontal_boundary[0]
-        
-        print(self.interelement_relations)
-        
+        if params.horizontal_boundary_elements_pbc is not None:
+            for horizontal_boundary in params.horizontal_boundary_elements_pbc:
+                self.interelement_relations[horizontal_boundary[0], 3] = \
+                    horizontal_boundary[1]
+                self.interelement_relations[horizontal_boundary[1], 1] = \
+                    horizontal_boundary[0]
+
         return
