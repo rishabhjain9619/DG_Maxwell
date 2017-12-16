@@ -10,8 +10,8 @@ import arrayfire as af
 from dg_maxwell import params
 from dg_maxwell import lagrange
 
-af.set_backend(params.backend)
-af.set_device(params.device)
+#af.set_backend(params.backend)
+#af.set_device(params.device)
 
 def add(a, b):
     '''

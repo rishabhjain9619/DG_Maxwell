@@ -16,8 +16,8 @@ from dg_maxwell import msh_parser
 from dg_maxwell import lagrange
 from dg_maxwell import utils
 
-af.set_backend(params.backend)
-af.set_device(params.device)
+#af.set_backend(params.backend)
+#af.set_device(params.device)
 
 def dx_dxi(x_nodes, xi, eta):
     '''

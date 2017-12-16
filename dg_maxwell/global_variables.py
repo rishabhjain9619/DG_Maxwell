@@ -13,8 +13,8 @@ from dg_maxwell import msh_parser
 from dg_maxwell import isoparam
 from dg_maxwell import advection_2d_arbit_mesh as advec_2d__arbit_mesh
 
-af.set_backend(params.backend)
-af.set_device(params.device)
+#af.set_backend(params.backend)
+#af.set_device(params.device)
 
 def function(x):
     return 0.07 * np.sin(2 * np.pi * x)

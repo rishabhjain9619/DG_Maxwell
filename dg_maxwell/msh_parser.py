@@ -11,8 +11,8 @@ from dg_maxwell import utils
 from dg_maxwell import params
 from dg_maxwell import advection_2d_arbit_mesh as a2d_arbit_mesh
 
-af.set_backend(params.backend)
-af.set_device(params.device)
+#af.set_backend(params.backend)
+#af.set_device(params.device)
 
 def read_order_2_msh(msh_file):
     '''

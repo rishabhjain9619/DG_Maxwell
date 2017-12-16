@@ -13,8 +13,8 @@ from dg_maxwell import params
 from dg_maxwell import lagrange
 from dg_maxwell import utils
 
-af.set_backend(params.backend)
-af.set_device(params.device)
+#af.set_backend(params.backend)
+#af.set_device(params.device)
 
 
 def mapping_xi_to_x(x_nodes, xi):
