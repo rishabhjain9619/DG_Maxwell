@@ -4,9 +4,27 @@
 import numpy as np
 import matplotlib.lines as lines
 import arrayfire as af
-
+import csv
 #af.set_backend('cpu')
 #af.set_device(0)
+
+
+def plotcsv():
+    csv_handler = csv.reader(open('results/L1_norm_error_arr_E_z.csv', newline='\n'), delimiter=',')
+    content = list()
+
+    for n, line in enumerate(csv_handler):
+        content.append(list())
+        for item in line:
+            try:
+                content[-1].append(float(item))
+            except ValueError:
+                if content[-1] == []:
+                    content.pop()
+                    print('popping string')
+                break
+    return content
+
 
 def add(a, b):
     '''
