@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath('./'))
 import numpy as np
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import params
 from dg_maxwell import lagrange
