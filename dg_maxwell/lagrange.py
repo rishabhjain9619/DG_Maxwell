@@ -10,6 +10,8 @@ import arrayfire as af
 
 from dg_maxwell import utils
 from dg_maxwell import params
+from decimal import Decimal
+from decimal import *
 
 def LGL_points(N):
     '''
@@ -41,9 +43,48 @@ def LGL_points(N):
     legendre_N_minus_1 = N * (xi * sp.legendre(N - 1) - sp.legendre(N))
     lgl_points         = legendre_N_minus_1.r
     lgl_points.sort()
+    getcontext().prec = 200
+    for i in range(0,lgl_points.size):
+        lgl_points[i] = Decimal.from_float(lgl_points[i])
     lgl_points         = af.np_to_af_array(lgl_points)
-
+    
     return lgl_points
+
+
+def Chebyshev_points(N):
+    '''
+    Calculates : math: `N` Chebyshev_points nodes.
+    LGL points are the roots of the polynomial 
+
+    :math: `(1 - \\xi ** 2) P_{n - 1}'(\\xi) = 0`
+
+    Where :math: `P_{n}(\\xi)` are the Legendre polynomials.
+    This function finds the roots of the above polynomial.
+
+    Parameters
+    ----------
+
+    N : int
+        Number of LGL nodes required
+    
+    Returns
+    -------
+
+    lgl : arrayfire.Array [N 1 1 1]
+          The Lagrange-Gauss-Lobatto Nodes.
+                          
+    **See:** `document`_
+    .. _document: https://goo.gl/KdG2Sv
+
+    '''
+    chebyshev_points = []
+    for k in range (1,(N+1)):
+        chebyshev_points.append(np.cos(((2*k-1)/(2*N))*np.pi))
+    chebyshev_points = np.asarray(chebyshev_points)
+    chebyshev_points.sort()
+    chebyshev_points         = af.np_to_af_array(chebyshev_points)
+
+    return chebyshev_points
 
 def lobatto_weights(n):
     '''
@@ -195,21 +236,33 @@ def lagrange_polynomials(x):
     in the form [a^2_3, a^2_2, a^2_1, a^2_0]
 
     '''
+    getcontext().prec = 200
     X = np.array(x)
+    for i in range(0,X.size):
+        X[i] = Decimal.from_float(X[i])
     lagrange_basis_poly   = []
     lagrange_basis_coeffs = np.zeros([X.shape[0], X.shape[0]])
     
     for j in np.arange(X.shape[0]):
-        lagrange_basis_j = np.poly1d([1])
-        
+        lagrange_basis_j = np.ones([1])
         for m in np.arange(X.shape[0]):
             if m != j:
-                lagrange_basis_j *= np.poly1d([1, -X[m]]) \
-                                    / (X[j] - X[m])
-        lagrange_basis_poly.append(lagrange_basis_j)
-        lagrange_basis_coeffs[j] = lagrange_basis_j.c
+                lagrange_basis_j = polymult(lagrange_basis_j, np.asarray([1, -X[m]],dtype = np.float64) \
+                                    / (X[j] - X[m]))
+
+        lagrange_basis_coeffs[j] = lagrange_basis_j
+        lagrange_basis_poly.append(lagrange_basis_j)        
     
     return lagrange_basis_poly, lagrange_basis_coeffs
+
+
+def polymult(arr_1, arr_2):
+    arr_3 = np.zeros(arr_1.size + arr_2.size-1)
+    for i in range(0,arr_1.size):
+        for j in range(0,arr_2.size):
+            arr_3[i+j] += arr_1[i]*arr_2[j]
+    return arr_3
+
 
 
 def lagrange_function_value(lagrange_coeff_array):
@@ -267,7 +320,7 @@ def integrate(integrand_coeffs):
     in params.py module.
     
     Parameters
-    ----------
+    #----------
     
     integrand_coeffs : arrayfire.Array [M N 1 1]
                        The coefficients of M number of polynomials of order N

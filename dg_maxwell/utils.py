@@ -10,7 +10,7 @@ import csv
 
 
 def plotcsv():
-    csv_handler = csv.reader(open('results/L1_norm_error_arr_E_z.csv', newline='\n'), delimiter=',')
+    csv_handler = csv.reader(open('results/L1_norm_error_arr_B_y.csv', newline='\n'), delimiter=',')
     content = list()
 
     for n, line in enumerate(csv_handler):
