@@ -10,8 +10,7 @@ import arrayfire as af
 
 from dg_maxwell import utils
 from dg_maxwell import params
-from decimal import Decimal
-from decimal import *
+
 
 def LGL_points(N):
     '''
@@ -43,10 +42,9 @@ def LGL_points(N):
     legendre_N_minus_1 = N * (xi * sp.legendre(N - 1) - sp.legendre(N))
     lgl_points         = legendre_N_minus_1.r
     lgl_points.sort()
-    getcontext().prec = 200
-    for i in range(0,lgl_points.size):
-        lgl_points[i] = Decimal.from_float(lgl_points[i])
     lgl_points         = af.np_to_af_array(lgl_points)
+    lgl_points[0]      = -1
+    lgl_points[-1]     = 1
     
     return lgl_points
 
@@ -236,10 +234,8 @@ def lagrange_polynomials(x):
     in the form [a^2_3, a^2_2, a^2_1, a^2_0]
 
     '''
-    getcontext().prec = 200
+ 
     X = np.array(x)
-    for i in range(0,X.size):
-        X[i] = Decimal.from_float(X[i])
     lagrange_basis_poly   = []
     lagrange_basis_coeffs = np.zeros([X.shape[0], X.shape[0]])
     
@@ -248,7 +244,7 @@ def lagrange_polynomials(x):
         for m in np.arange(X.shape[0]):
             if m != j:
                 lagrange_basis_j = polymult(lagrange_basis_j, np.asarray([1, -X[m]],dtype = np.float64) \
-                                    / (X[j] - X[m]))
+                                    / ((X[j] - X[m])))
 
         lagrange_basis_coeffs[j] = lagrange_basis_j
         lagrange_basis_poly.append(lagrange_basis_j)        
