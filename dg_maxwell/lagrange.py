@@ -5,8 +5,8 @@ import numpy as np
 from scipy import special as sp
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import utils
 from dg_maxwell import params
@@ -403,3 +403,69 @@ def lagrange_interpolation(fn_i):
                                         d0 = 2, d1 = 1, d2 = 0)
 
     return lagrange_interpolation
+
+def weight_arr_fun(xi_lgl):
+    xi_lgl = params.xi_LGL
+    xi_lgl = np.asarray(xi_lgl)
+    weight_arr = np.zeros(xi_lgl.size, dtype = np.float64)
+    for j in range(0, xi_lgl.size):
+        weight = 1
+        for i in range(0, xi_lgl.size):
+            if(i!=j):
+                weight *= 1/(xi_lgl[j]-xi_lgl[i])
+        weight_arr[j] = weight
+    return weight_arr
+
+def eval_arr(point_arr, function_arr):
+    xi_lgl = params.xi_LGL
+    weight_arr = params.weight_arr
+    point_eval_arr = np.zeros(point_arr.size, dtype = np.float64)
+    for j in range(0, point_arr.size):
+        flag = False
+        for l in range(0, xi_lgl.size):
+            if(point_arr[j] == xi_lgl[l]):
+                print('Evaluated point exactly matches the lgl point')
+                point_eval_arr[j] = function_arr[j]
+                flag = True
+                break
+        if(flag == True):
+            continue
+        denom = 0
+        for i in range(0, weight_arr.size):
+            denom += weight_arr[i]/(point_arr[j] - xi_lgl[i])
+        numer = 0
+        for i in range(0, function_arr.size):
+            numer += (weight_arr[i]/(point_arr[j] - xi_lgl[i]))*(function_arr[i])
+        point_eval_arr[j] = numer/denom
+    return point_eval_arr
+
+def eval_lagrange_basis(point_arr, j):
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = np.asarray(params.weight_arr)
+    eval_point_arr = np.zeros(point_arr.size)
+    for k in range(0, point_arr.size):
+        denom = 0
+        for i in range(0, weight_arr.size):
+            denom += weight_arr[i]/(point_arr[k]-xi_lgl[i])
+        numer = weight_arr[j]/(point_arr[k]-xi_lgl[j])
+        eval_point_arr[k] = numer/denom
+    return eval_point_arr
+
+def eval_diff_lagrange_basis(point_arr, j):
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = np.asarray(params.weight_arr)
+    eval_point_arr_diff = np.zeros(point_arr.size)
+    for k in range(0, point_arr.size):
+        denom = 0
+        denom_diff = 0
+        for i in range(0, weight_arr.size):
+            denom += weight_arr[i]/(point_arr[k]-xi_lgl[i])
+            denom_diff += -(weight_arr[i]/((point_arr[k]-xi_lgl[i]) ** 2))
+        numer = weight_arr[j]/(point_arr[k]-xi_lgl[j])
+        numer_diff = -weight_arr[j]/((point_arr[k]-xi_lgl[j])**2)
+        eval_point_arr_diff[k] = (denom*numer_diff - numer*denom_diff)/(denom**2)
+    return eval_point_arr_diff
+
+
+
+

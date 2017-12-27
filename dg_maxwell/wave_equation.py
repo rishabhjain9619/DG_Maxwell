@@ -5,8 +5,8 @@ import os
 
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -158,20 +158,24 @@ def A_matrix():
 
     '''
     # Coefficients of Lagrange basis polynomials.
-    lagrange_coeffs = params.lagrange_coeffs
-    lagrange_coeffs = af.reorder(lagrange_coeffs, 1, 2, 0)
-
-    # Coefficients of product of Lagrange basis polynomials.
-    lag_prod_coeffs = af.convolve1(lagrange_coeffs,\
-                                   af.reorder(lagrange_coeffs, 0, 2, 1),\
-                                   conv_mode=af.CONV_MODE.EXPAND)
-    lag_prod_coeffs = af.reorder(lag_prod_coeffs, 1, 2, 0)
-    lag_prod_coeffs = af.moddims(lag_prod_coeffs, params.N_LGL ** 2, 2 * params.N_LGL - 1)
-
-
-    dx_dxi   = params.dx_dxi 
-    A_matrix = dx_dxi * af.moddims(lagrange.integrate(lag_prod_coeffs),\
-                                             params.N_LGL, params.N_LGL)
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = np.asarray(params.weight_arr)
+    gauss_points = np.asarray(params.gauss_points)
+    gauss_weights = np.asarray(params.gauss_weights)
+    A_matrix = np.zeros((xi_lgl.size, xi_lgl.size))
+    dx_dxi   = np.asarray(params.dx_dxi) 
+    for j in range(0, xi_lgl.size):
+        for i in range(j, xi_lgl.size):
+            function_lagrange_1 = lagrange.eval_lagrange_basis(gauss_points, j)
+            function_lagrange_2 = function_lagrange_1 * lagrange.eval_lagrange_basis(gauss_points, i)
+            for k in range(0, xi_lgl.size):
+                A_matrix[j][i] += gauss_weights[k] * function_lagrange_2[k]  
+    
+    for j in range(0, xi_lgl.size):
+        for i in range(j, xi_lgl.size):
+            A_matrix[i][j] = A_matrix[j][i]
+    A_matrix *= dx_dxi
+    A_matrix = af.np_to_af_array(A_matrix)
     
     return A_matrix
 
@@ -541,3 +545,36 @@ def time_evolution(u = None):
         u += RK4_timestepping(A_inverse, u, delta_t)
 
 
+def mod_time_evolution(u = None):
+    '''
+    '''
+
+
+    element_LGL = params.element_LGL
+    delta_t     = params.delta_t
+    shape_u_n = utils.shape(u)
+    time        = params.time
+    A_inverse = af.tile(af.inverse(A_matrix()),
+                        d0 = 1, d1 = 1,
+                        d2 = shape_u_n[2])
+
+    element_boundaries = af.np_to_af_array(params.np_element_array)
+    
+    for t_n in trange(0, time.shape[0]):
+
+        u += RK4_timestepping(A_inverse, u, delta_t)
+    
+    return u
+
+
+def E_z_B_y_diff(u, t):
+    '''
+    '''
+    time_2   =  t[-1].to_array()
+    E_z_t    =  (np.cos(2*np.pi*time_2[0])-np.sin(2*np.pi*time_2[0]))*af.sin(2 * np.pi * params.element_LGL) + (np.cos(2*np.pi*time_2[0])+np.sin(2*np.pi*time_2[0]))*af.cos(2 * np.pi * params.element_LGL)
+    B_y_t    =  (np.cos(2*np.pi*time_2[0])-np.sin(2*np.pi*time_2[0]))*af.sin(2 * np.pi * params.element_LGL) + (np.cos(2*np.pi*time_2[0])+np.sin(2*np.pi*time_2[0]))*af.cos(2 * np.pi * params.element_LGL)
+    diff_E_z =  af.abs(E_z_t-u[:, :, 0])
+    diff_B_y =  af.abs(B_y_t-u[:, : ,1])
+    u_diff   =  af.join(2, diff_E_z, diff_B_y)
+    
+    return u_diff

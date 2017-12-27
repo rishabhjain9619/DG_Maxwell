@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath('./'))
 import numpy as np
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import params
 from dg_maxwell import lagrange
@@ -35,6 +35,8 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
                The new N_Elements.
 
     '''
+    
+    
     # The domain of the function.
     params.x_nodes    = af.np_to_af_array(np.array([-1., 1.]))
 
@@ -50,6 +52,9 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
     # Array containing the LGL points in xi space.
     params.xi_LGL     = lagrange.LGL_points(params.N_LGL)
 
+    # The weights of the lgl points
+    params.weight_arr = lagrange.weight_arr_fun(params.xi_LGL)
+    
     # N_Gauss number of Gauss nodes.
     params.gauss_points  = af.np_to_af_array(lagrange.gauss_nodes\
                                                     (params.N_quad))

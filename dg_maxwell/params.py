@@ -4,8 +4,8 @@
 import numpy as np
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import lagrange
 from dg_maxwell import utils
@@ -43,6 +43,9 @@ c_lax      = abs(c)
 
 # Array containing the LGL points in xi space.
 xi_LGL     = lagrange.LGL_points(N_LGL)
+
+#Calculates the weights for the lagrange interpolation 
+weight_arr = lagrange.weight_arr_fun(xi_LGL)
 
 
 # N_Gauss number of Gauss nodes.
