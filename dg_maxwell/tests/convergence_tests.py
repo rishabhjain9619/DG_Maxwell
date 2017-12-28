@@ -8,29 +8,29 @@ from dg_maxwell import lagrange
 #af.set_backend('cpu')
 #af.set_device(0)
 
-def L1_norm(u):
-    '''
+#def L1_norm(u):
+    #'''
 
-    A function to calculate the L1 norm of error using
-    the polynomial obtained using Lagrange interpolation
+    #A function to calculate the L1 norm of error using
+    #the polynomial obtained using Lagrange interpolation
 
-    Parameters
-    ----------
-    u : arrayfire.Array [N_LGL N_Elements 1 1]
-        Difference between analytical and numerical u at the mapped LGL points.
+    #Parameters
+    #----------
+    #u : arrayfire.Array [N_LGL N_Elements 1 1]
+        #Difference between analytical and numerical u at the mapped LGL points.
 
-    Returns
-    -------
-    L1_norm : float64
-              The L1 norm of error.
+    #Returns
+    #-------
+    #L1_norm : float64
+              #The L1 norm of error.
 
-    '''
-    interpolated_coeffs = af.reorder(lagrange.lagrange_interpolation_u(\
-                                           u), 2, 1, 0)
+    #'''
+    #interpolated_coeffs = af.reorder(lagrange.lagrange_interpolation_u(\
+                                           #u), 2, 1, 0)
 
-    L1_norm = af.sum(lagrange.integrate(interpolated_coeffs))
+    #L1_norm = af.sum(lagrange.integrate(interpolated_coeffs))
 
-    return L1_norm
+    #return L1_norm
 
 def convergence_test():
     '''

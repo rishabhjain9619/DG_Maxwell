@@ -50,6 +50,9 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
     # Array containing the LGL points in xi space.
     params.xi_LGL     = lagrange.LGL_points(params.N_LGL)
 
+    # The weights of the lgl points
+    params.weight_arr = lagrange.weight_arr_fun(params.xi_LGL)
+
     # N_Gauss number of Gauss nodes.
     params.gauss_points  = af.np_to_af_array(lagrange.gauss_nodes\
                                                     (params.N_quad))

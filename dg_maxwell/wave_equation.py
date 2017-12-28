@@ -158,20 +158,24 @@ def A_matrix():
 
     '''
     # Coefficients of Lagrange basis polynomials.
-    lagrange_coeffs = params.lagrange_coeffs
-    lagrange_coeffs = af.reorder(lagrange_coeffs, 1, 2, 0)
-
-    # Coefficients of product of Lagrange basis polynomials.
-    lag_prod_coeffs = af.convolve1(lagrange_coeffs,\
-                                   af.reorder(lagrange_coeffs, 0, 2, 1),\
-                                   conv_mode=af.CONV_MODE.EXPAND)
-    lag_prod_coeffs = af.reorder(lag_prod_coeffs, 1, 2, 0)
-    lag_prod_coeffs = af.moddims(lag_prod_coeffs, params.N_LGL ** 2, 2 * params.N_LGL - 1)
-
-
-    dx_dxi   = params.dx_dxi 
-    A_matrix = dx_dxi * af.moddims(lagrange.integrate(lag_prod_coeffs),\
-                                             params.N_LGL, params.N_LGL)
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = np.asarray(params.weight_arr)
+    gauss_points = np.asarray(params.gauss_points)
+    gauss_weights = np.asarray(params.gauss_weights)
+    A_matrix = np.zeros((xi_lgl.size, xi_lgl.size))
+    dx_dxi   = np.asarray(params.dx_dxi) 
+    for j in range(0, xi_lgl.size):
+        for i in range(j, xi_lgl.size):
+            function_lagrange_1 = lagrange.eval_lagrange_basis(gauss_points, j)
+            function_lagrange_2 = function_lagrange_1 * lagrange.eval_lagrange_basis(gauss_points, i)
+            for k in range(0, xi_lgl.size):
+                A_matrix[j][i] += gauss_weights[k] * function_lagrange_2[k]  
+    
+    for j in range(0, xi_lgl.size):
+        for i in range(j, xi_lgl.size):
+            A_matrix[i][j] = A_matrix[j][i]
+    A_matrix *= dx_dxi
+    A_matrix = af.np_to_af_array(A_matrix)
     
     return A_matrix
 
@@ -281,49 +285,49 @@ def volume_integral_flux(u_n):
 
     # Using the integrate() function to calculate the volume integral term
     # by passing the Lagrange interpolated polynomial.
-    else:
-        #print('option3')
-        analytical_flux_coeffs = af.transpose(af.moddims(u_n,
-                                                        d0 = params.N_LGL,
-                                                        d1 = params.N_Elements \
-                                                            * shape_u_n[2]))
+    #else:
+        ##print('option3')
+        #analytical_flux_coeffs = af.transpose(af.moddims(u_n,
+                                                        #d0 = params.N_LGL,
+                                                        #d1 = params.N_Elements \
+                                                            #* shape_u_n[2]))
         
-        analytical_flux_coeffs = flux_x(
-            lagrange.lagrange_interpolation(analytical_flux_coeffs))
-        analytical_flux_coeffs = af.transpose(
-            af.moddims(af.transpose(analytical_flux_coeffs),
-                       d0 = params.N_LGL, d1 = params.N_Elements,
-                       d2 = shape_u_n[2]))
+        #analytical_flux_coeffs = flux_x(
+            #lagrange.lagrange_interpolation(analytical_flux_coeffs))
+        #analytical_flux_coeffs = af.transpose(
+            #af.moddims(af.transpose(analytical_flux_coeffs),
+                       #d0 = params.N_LGL, d1 = params.N_Elements,
+                       #d2 = shape_u_n[2]))
         
-        analytical_flux_coeffs = af.reorder(analytical_flux_coeffs,
-                                            d0 = 3, d1 = 1, d2 = 0, d3 = 2)
-        analytical_flux_coeffs = af.tile(analytical_flux_coeffs,
-                                         d0 = params.N_LGL)
-        analytical_flux_coeffs = af.moddims(
-            af.transpose(analytical_flux_coeffs),
-            d0 = params.N_LGL,
-            d1 = params.N_LGL * params.N_Elements, d2 = 1,
-            d3 = shape_u_n[2])
+        #analytical_flux_coeffs = af.reorder(analytical_flux_coeffs,
+                                            #d0 = 3, d1 = 1, d2 = 0, d3 = 2)
+        #analytical_flux_coeffs = af.tile(analytical_flux_coeffs,
+                                         #d0 = params.N_LGL)
+        #analytical_flux_coeffs = af.moddims(
+            #af.transpose(analytical_flux_coeffs),
+            #d0 = params.N_LGL,
+            #d1 = params.N_LGL * params.N_Elements, d2 = 1,
+            #d3 = shape_u_n[2])
         
-        analytical_flux_coeffs = af.moddims(
-            analytical_flux_coeffs, d0 = params.N_LGL,
-            d1 = params.N_LGL * params.N_Elements * shape_u_n[2],
-            d2 = 1, d3 = 1)
+        #analytical_flux_coeffs = af.moddims(
+            #analytical_flux_coeffs, d0 = params.N_LGL,
+            #d1 = params.N_LGL * params.N_Elements * shape_u_n[2],
+            #d2 = 1, d3 = 1)
         
-        analytical_flux_coeffs = af.transpose(analytical_flux_coeffs)
+        #analytical_flux_coeffs = af.transpose(analytical_flux_coeffs)
 
-        dl_dxi_coefficients    = af.tile(af.tile(params.dl_dxi_coeffs,
-                                                 d0 = params.N_Elements), \
-                                         d0 = shape_u_n[2])
+        #dl_dxi_coefficients    = af.tile(af.tile(params.dl_dxi_coeffs,
+                                                 #d0 = params.N_Elements), \
+                                         #d0 = shape_u_n[2])
 
-        volume_int_coeffs = utils.poly1d_product(dl_dxi_coefficients,
-                                                analytical_flux_coeffs)
+        #volume_int_coeffs = utils.poly1d_product(dl_dxi_coefficients,
+                                                #analytical_flux_coeffs)
         
-        flux_integral = lagrange.integrate(volume_int_coeffs)
-        flux_integral = af.moddims(af.transpose(flux_integral),
-                                   d0 = params.N_LGL,
-                                   d1 = params.N_Elements,
-                                   d2 = shape_u_n[2])
+        #flux_integral = lagrange.integrate(volume_int_coeffs)
+        #flux_integral = af.moddims(af.transpose(flux_integral),
+                                   #d0 = params.N_LGL,
+                                   #d1 = params.N_Elements,
+                                   #d2 = shape_u_n[2])
 
     return flux_integral
 

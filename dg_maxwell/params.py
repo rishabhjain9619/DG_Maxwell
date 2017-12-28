@@ -44,6 +44,8 @@ c_lax      = abs(c)
 # Array containing the LGL points in xi space.
 xi_LGL     = lagrange.LGL_points(N_LGL)
 
+#Calculates the weights for the lagrange interpolation 
+weight_arr = lagrange.weight_arr_fun(xi_LGL)
 
 # N_Gauss number of Gauss nodes.
 gauss_points               = af.np_to_af_array(lagrange.gauss_nodes(N_quad))
