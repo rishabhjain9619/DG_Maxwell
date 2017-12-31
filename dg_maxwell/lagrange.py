@@ -490,3 +490,55 @@ def weight_arr_fun(xi_lgl):
         weight_arr[j] = weight
     return weight_arr
 
+
+def eval_diff_lagrange_basis(point_arr, j):
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = weight_arr_fun(xi_lgl)
+    eval_point_arr_diff = np.zeros(point_arr.size)
+    for k in range(0, point_arr.size):
+        denom = 0
+        denom_diff = 0
+        for i in range(0, weight_arr.size):
+            denom += weight_arr[i]/(point_arr[k]-xi_lgl[i])
+            denom_diff += -(weight_arr[i]/((point_arr[k]-xi_lgl[i]) ** 2))
+        numer = weight_arr[j]/(point_arr[k]-xi_lgl[j])
+        numer_diff = -weight_arr[j]/((point_arr[k]-xi_lgl[j])**2)
+        eval_point_arr_diff[k] = (denom*numer_diff - numer*denom_diff)/(denom**2)
+    return eval_point_arr_diff
+
+
+
+def b_matrix_eval():
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = weight_arr_fun(xi_lgl)
+    gauss_nodes   = np.asarray(params.gauss_points)
+    gauss_weights = np.asarray(params.gauss_weights)
+    b_matrix = np.zeros((xi_lgl.size, xi_lgl.size))
+    for i in range(0, xi_lgl.size):
+        temp_arr = eval_diff_lagrange_basis(gauss_nodes, i)
+        for j in range(0, xi_lgl.size):
+            b_matrix[i][j] = gauss_weights[j] * temp_arr[j]
+    
+    return b_matrix
+    
+def eval_arr(point_arr, xi_lgl, weight_arr, function_arr):
+    point_eval_arr = np.zeros(point_arr.size, dtype = np.float64)
+    for j in range(0, point_arr.size):
+        flag = False
+        for l in range(0, xi_lgl.size):
+            if(point_arr[j] == xi_lgl[l]):
+                print('Evaluated points matches the actual point')
+                point_eval_arr[j] = function_arr[j]
+                flag = True
+                break
+        if(flag == True):
+            continue
+        denom = 0
+        for i in range(0, weight_arr.size):
+            denom += weight_arr[i]/(point_arr[j] - xi_lgl[i])
+        numer = 0
+        for i in range(0, function_arr.size):
+            numer += (weight_arr[i]/(point_arr[j] - xi_lgl[i]))*(function_arr[i])
+        point_eval_arr[j] = numer/denom
+    return point_eval_arr
+

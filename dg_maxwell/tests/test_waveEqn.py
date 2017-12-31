@@ -65,6 +65,9 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
     # The lobatto weights to be used for integration.
     params.lobatto_weights_quadrature = lagrange.lobatto_weights\
                                         (params.N_quad)
+                                    
+    #The b matrix
+    params.b_matrix = lagrange.b_matrix_eval()
 
     # A list of the Lagrange polynomials in poly1d form.
     #params.lagrange_product = lagrange.product_lagrange_poly(params.xi_LGL)

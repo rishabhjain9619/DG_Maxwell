@@ -246,45 +246,47 @@ def volume_integral_flux(u_n):
                     of all N_LGL * N_Element integrands.
 
     '''
-    shape_u_n = utils.shape(u_n)
+    #shape_u_n = utils.shape(u_n)
     
-    # The coefficients of dLp / d\xi
-    diff_lag_coeff  = params.dl_dxi_coeffs
+    ## The coefficients of dLp / d\xi
+    #diff_lag_coeff  = params.dl_dxi_coeffs
 
-    lobatto_nodes   = params.lobatto_quadrature_nodes
-    Lobatto_weights = params.lobatto_weights_quadrature
+    #lobatto_nodes   = params.lobatto_quadrature_nodes
+    #Lobatto_weights = params.lobatto_weights_quadrature
 
-    nodes_tile   = af.transpose(af.tile(lobatto_nodes, 1, diff_lag_coeff.shape[1]))
-    power        = af.flip(af.range(diff_lag_coeff.shape[1]))
-    power_tile   = af.tile(power, 1, params.N_quad)
-    nodes_power  = nodes_tile ** power_tile
-    weights_tile = af.transpose(af.tile(Lobatto_weights, 1, diff_lag_coeff.shape[1]))
-    nodes_weight = nodes_power * weights_tile
+    ##nodes_tile   = af.transpose(af.tile(lobatto_nodes, 1, diff_lag_coeff.shape[1]))
+    ##power        = af.flip(af.range(diff_lag_coeff.shape[1]))
+    ##power_tile   = af.tile(power, 1, params.N_quad)
+    ##nodes_power  = nodes_tile ** power_tile
+    ##weights_tile = af.transpose(af.tile(Lobatto_weights, 1, diff_lag_coeff.shape[1]))
+    ##nodes_weight = nodes_power * weights_tile
 
-    dLp_dxi      = af.matmul(diff_lag_coeff, nodes_weight)
+    ##dLp_dxi      = af.matmul(diff_lag_coeff, nodes_weight)
+    
+    #dLp_dxi      = af.np_to_af_array(params.b_matrix)
 
 
-    # The first option to calculate the volume integral term, directly uses
-    # the Lobatto quadrature instead of using the integrate() function by
-    # passing the coefficients of the Lagrange interpolated polynomial.
-    if(params.volume_integral_scheme == 'lobatto_quadrature' \
-        and params.N_quad == params.N_LGL):
+    ## The first option to calculate the volume integral term, directly uses
+    ## the Lobatto quadrature instead of using the integrate() function by
+    ## passing the coefficients of the Lagrange interpolated polynomial.
+    #if(params.volume_integral_scheme == 'lobatto_quadrature' \
+        #and params.N_quad == params.N_LGL):
 
-        # Flux using u_n, reordered to 1 X N_LGL X N_Elements array.
-        F_u_n                  = af.reorder(flux_x(u_n), 3, 0, 1, 2)
-        F_u_n = af.tile(F_u_n, d0 = params.N_LGL)
+        ## Flux using u_n, reordered to 1 X N_LGL X N_Elements array.
+        #F_u_n                  = af.reorder(flux_x(u_n), 3, 0, 1, 2)
+        #F_u_n = af.tile(F_u_n, d0 = params.N_LGL)
 
-        # Multiplying with dLp / d\xi
-        integral_expansion     = af.broadcast(utils.multiply,
-                                            dLp_dxi, F_u_n)
+        ## Multiplying with dLp / d\xi
+        #integral_expansion     = af.broadcast(utils.multiply,
+                                            #dLp_dxi, F_u_n)
 
-    #     # Using the quadrature rule.
-        flux_integral = af.sum(integral_expansion, 1)
+    ##     # Using the quadrature rule.
+        #flux_integral = af.sum(integral_expansion, 1)
 
-        flux_integral = af.reorder(flux_integral, 0, 2, 3, 1)
+        #flux_integral = af.reorder(flux_integral, 0, 2, 3, 1)
 
-    # Using the integrate() function to calculate the volume integral term
-    # by passing the Lagrange interpolated polynomial.
+    ## Using the integrate() function to calculate the volume integral term
+    ## by passing the Lagrange interpolated polynomial.
     #else:
         ##print('option3')
         #analytical_flux_coeffs = af.transpose(af.moddims(u_n,
@@ -329,6 +331,20 @@ def volume_integral_flux(u_n):
                                    #d1 = params.N_Elements,
                                    #d2 = shape_u_n[2])
 
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = params.weight_arr
+    gauss_nodes   = np.asarray(params.gauss_points)
+    gauss_weights = np.asarray(params.gauss_weights)
+    b_matrix = params.b_matrix
+    shape_factor = af.transpose(params.elements_xi_LGL)
+    temp_arr = np.zeros(shape_factor.shape)
+    u_n = np.asarray(u_n)
+    u_n = u_n[:, :, 1]
+    for j in range(0, shape_factor.shape[1]):
+        temp_arr[:, j] = lagrange.eval_arr(np.asarray(gauss_nodes), xi_lgl, weight_arr, u_n[:,j])
+    flux_integral = af.np_to_af_array(-1 * np.matmul(b_matrix, temp_arr))
+    flux_integral = af.join(2, flux_integral, flux_integral)
+    
     return flux_integral
 
 
