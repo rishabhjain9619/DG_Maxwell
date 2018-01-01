@@ -301,65 +301,65 @@ def lagrange_function_value(lagrange_coeff_array):
 
 
 
-#def integrate(integrand_coeffs):
-    #'''
-    #Performs integration according to the given quadrature method
-    #by taking in the coefficients of the polynomial and the number of
-    #quadrature points.
-    #The number of quadrature points and the quadrature scheme are set
-    #in params.py module.
+def integrate(integrand_coeffs):
+    '''
+    Performs integration according to the given quadrature method
+    by taking in the coefficients of the polynomial and the number of
+    quadrature points.
+    The number of quadrature points and the quadrature scheme are set
+    in params.py module.
     
-    #Parameters
-    ##----------
+    Parameters
+    #----------
     
-    #integrand_coeffs : arrayfire.Array [M N 1 1]
-                       #The coefficients of M number of polynomials of order N
-                       #arranged in a 2D array.
-    #Returns
-    #-------
+    integrand_coeffs : arrayfire.Array [M N 1 1]
+                       The coefficients of M number of polynomials of order N
+                       arranged in a 2D array.
+    Returns
+    -------
     
-    #Integral : arrayfire.Array [M 1 1 1]
-               #The value of the definite integration performed using the
-               #specified quadrature method for M polynomials.
+    Integral : arrayfire.Array [M 1 1 1]
+               The value of the definite integration performed using the
+               specified quadrature method for M polynomials.
 
-    #'''
+    '''
 
 
-    #integrand      = integrand_coeffs
+    integrand      = integrand_coeffs
 
-    #if (params.scheme == 'gauss_quadrature'):
-        ##print('gauss_quad')
+    if (params.scheme == 'gauss_quadrature'):
+        #print('gauss_quad')
 
-        #gaussian_nodes = params.gauss_points
-        #Gauss_weights  = params.gauss_weights
+        gaussian_nodes = params.gauss_points
+        Gauss_weights  = params.gauss_weights
 
-        #nodes_tile   = af.transpose(af.tile(gaussian_nodes, 1, integrand.shape[1]))
-        #power        = af.flip(af.range(integrand.shape[1]))
-        #nodes_power  = af.broadcast(utils.power, nodes_tile, power)
-        #weights_tile = af.transpose(af.tile(Gauss_weights, 1, integrand.shape[1]))
-        #nodes_weight = nodes_power * weights_tile
+        nodes_tile   = af.transpose(af.tile(gaussian_nodes, 1, integrand.shape[1]))
+        power        = af.flip(af.range(integrand.shape[1]))
+        nodes_power  = af.broadcast(utils.power, nodes_tile, power)
+        weights_tile = af.transpose(af.tile(Gauss_weights, 1, integrand.shape[1]))
+        nodes_weight = nodes_power * weights_tile
 
-        #value_at_gauss_nodes = af.matmul(integrand, nodes_weight)
-        #integral             = af.sum(value_at_gauss_nodes, 1)
+        value_at_gauss_nodes = af.matmul(integrand, nodes_weight)
+        integral             = af.sum(value_at_gauss_nodes, 1)
  
-    #if (params.scheme == 'lobatto_quadrature'):
-        ##print('lob_quad')
+    if (params.scheme == 'lobatto_quadrature'):
+        #print('lob_quad')
 
-        #lobatto_nodes   = params.lobatto_quadrature_nodes
-        #Lobatto_weights = params.lobatto_weights_quadrature
+        lobatto_nodes   = params.lobatto_quadrature_nodes
+        Lobatto_weights = params.lobatto_weights_quadrature
 
-        #nodes_tile   = af.transpose(af.tile(lobatto_nodes, 1, integrand.shape[1]))
-        #power        = af.flip(af.range(integrand.shape[1]))
-        #nodes_power  = af.broadcast(utils.power, nodes_tile, power)
-        #weights_tile = af.transpose(af.tile(Lobatto_weights, 1, integrand.shape[1]))
-        #nodes_weight = nodes_power * weights_tile
-
-
-        #value_at_lobatto_nodes = af.matmul(integrand, nodes_weight)
-        #integral               = af.sum(value_at_lobatto_nodes, 1)
+        nodes_tile   = af.transpose(af.tile(lobatto_nodes, 1, integrand.shape[1]))
+        power        = af.flip(af.range(integrand.shape[1]))
+        nodes_power  = af.broadcast(utils.power, nodes_tile, power)
+        weights_tile = af.transpose(af.tile(Lobatto_weights, 1, integrand.shape[1]))
+        nodes_weight = nodes_power * weights_tile
 
 
-    #return integral
+        value_at_lobatto_nodes = af.matmul(integrand, nodes_weight)
+        integral               = af.sum(value_at_lobatto_nodes, 1)
+
+
+    return integral
 
 
 
