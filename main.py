@@ -84,7 +84,7 @@ if __name__ == '__main__':
  
     error_arr_E_z = []
     error_arr_B_y = []
-    for n_lgl in range(4, 26, 2):
+    for n_lgl in range(4, 7):
         test_waveEqn.change_parameters(n_lgl, params.N_Elements, n_lgl)
         E_z     =  af.sin(2 * np.pi * params.element_LGL) + af.cos(2 * np.pi * params.element_LGL)
         B_y     =  af.sin(2 * np.pi * params.element_LGL) + af.cos(2 * np.pi * params.element_LGL)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     error_arr_E_z = np.asarray(error_arr_E_z)
     np.savetxt('results/L1_norm_error_arr_B_y.csv', error_arr_B_y, delimiter = ',')
     np.savetxt('results/L1_norm_error_arr_E_z.csv', error_arr_E_z, delimiter = ',')
-    pl.semilogy(np.arange(4,26,2), np.asarray(error_arr_E_z), '.-',)
+    pl.semilogy(np.arange(4,7), np.asarray(error_arr_E_z), '.-',)
     pl.title(r'Plot for L_1 norm')
     pl.xlabel(r'No. of lgl points')
     pl.ylabel(r'Error norm')

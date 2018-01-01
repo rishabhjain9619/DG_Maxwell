@@ -38,13 +38,13 @@ def LGL_points(N):
     .. _document: https://goo.gl/KdG2Sv
 
     '''
-    xi                 = np.poly1d([1, 0])
-    legendre_N_minus_1 = N * (xi * sp.legendre(N - 1) - sp.legendre(N))
-    lgl_points         = legendre_N_minus_1.r
+
+    lgl_points = np.zeros(N)
+    lgl_points[1:N-1] = (np.roots(np.polyder(sp.legendre(N-1))))
+    lgl_points[0] = -1
+    lgl_points[-1] = 1
     lgl_points.sort()
-    lgl_points         = af.np_to_af_array(lgl_points)
-    lgl_points[0]      = -1
-    lgl_points[-1]     = 1
+    lgl_points = af.np_to_af_array(lgl_points)
     
     return lgl_points
 
@@ -147,9 +147,7 @@ def gauss_nodes(n):
     .. _here: https://goo.gl/9gqLpe
 
     '''
-    legendre = sp.legendre(n)
-    gauss_nodes = legendre.r
-    gauss_nodes.sort()
+    gauss_nodes = np.polynomial.legendre.leggauss(n)[0]
     
     return gauss_nodes
 
@@ -179,11 +177,7 @@ def gaussian_weights(N):
     '''
     index = np.arange(N) # Index `i` in `w_i`, varies from 0 to N_quad - 1
     
-    gaussian_nodes = gauss_nodes(N)
-    gaussian_weight  = 2 / ((1 - (gaussian_nodes[index]) ** 2) *\
-                       (np.polyder(sp.legendre(N))(gaussian_nodes[index])) ** 2)
-
-    gaussian_weight = af.np_to_af_array(gaussian_weight)
+    gaussian_weight = np.polynomial.legendre.leggauss(N)[1]
     
     return gaussian_weight
 
@@ -491,37 +485,39 @@ def weight_arr_fun(xi_lgl):
     return weight_arr
 
 
-def eval_diff_lagrange_basis(point_arr, j):
+def eval_diff_lagrange_basis(lobatto_nodes, j):
     xi_lgl = np.asarray(params.xi_LGL)
-    weight_arr = weight_arr_fun(xi_lgl)
-    eval_point_arr_diff = np.zeros(point_arr.size)
-    for k in range(0, point_arr.size):
-        denom = 0
-        denom_diff = 0
-        for i in range(0, weight_arr.size):
-            denom += weight_arr[i]/(point_arr[k]-xi_lgl[i])
-            denom_diff += -(weight_arr[i]/((point_arr[k]-xi_lgl[i]) ** 2))
-        numer = weight_arr[j]/(point_arr[k]-xi_lgl[j])
-        numer_diff = -weight_arr[j]/((point_arr[k]-xi_lgl[j])**2)
-        eval_point_arr_diff[k] = (denom*numer_diff - numer*denom_diff)/(denom**2)
-    return eval_point_arr_diff
-
+    weight_arr = np.asarray(params.weight_arr)
+    eval_lobatto_nodes_diff = np.zeros(xi_lgl.size)
+    for k in range(0, xi_lgl.size):
+        if(j == k):
+            for m in range(0, xi_lgl.size):
+                if(m != k):
+                    eval_lobatto_nodes_diff[k] += 1/(xi_lgl[k]-xi_lgl[m])
+        else:
+            eval_lobatto_nodes_diff[k] = weight_arr[j]/(weight_arr[k]*(xi_lgl[k]-xi_lgl[j]))
+    return eval_lobatto_nodes_diff
 
 
 def b_matrix_eval():
     xi_lgl = np.asarray(params.xi_LGL)
     weight_arr = weight_arr_fun(xi_lgl)
-    gauss_nodes   = np.asarray(params.gauss_points)
-    gauss_weights = np.asarray(params.gauss_weights)
+    lobatto_nodes   = params.lobatto_quadrature_nodes
+    lobatto_nodes   = np.asarray(lobatto_nodes)
+    Lobatto_weights = params.lobatto_weights_quadrature
+    Lobatto_weights = np.asarray(Lobatto_weights)
     b_matrix = np.zeros((xi_lgl.size, xi_lgl.size))
     for i in range(0, xi_lgl.size):
-        temp_arr = eval_diff_lagrange_basis(gauss_nodes, i)
+        temp_arr = eval_diff_lagrange_basis(lobatto_nodes, i)
         for j in range(0, xi_lgl.size):
-            b_matrix[i][j] = gauss_weights[j] * temp_arr[j]
+            b_matrix[i][j] = Lobatto_weights[j] * temp_arr[j]
     
     return b_matrix
     
-def eval_arr(point_arr, xi_lgl, weight_arr, function_arr):
+
+def eval_arr(point_arr, function_arr):
+    xi_lgl = np.asarray(params.xi_LGL)
+    weight_arr = weight_arr_fun(xi_lgl)
     point_eval_arr = np.zeros(point_arr.size, dtype = np.float64)
     for j in range(0, point_arr.size):
         flag = False
@@ -541,4 +537,3 @@ def eval_arr(point_arr, xi_lgl, weight_arr, function_arr):
             numer += (weight_arr[i]/(point_arr[j] - xi_lgl[i]))*(function_arr[i])
         point_eval_arr[j] = numer/denom
     return point_eval_arr
-
