@@ -4,8 +4,8 @@
 import numpy as np
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import lagrange
 from dg_maxwell import utils
@@ -44,6 +44,8 @@ c_lax      = abs(c)
 # Array containing the LGL points in xi space.
 xi_LGL     = lagrange.LGL_points(N_LGL)
 
+#Calculates the weights for the lagrange interpolation 
+weight_arr = lagrange.weight_arr_fun(xi_LGL)
 
 # N_Gauss number of Gauss nodes.
 gauss_points               = af.np_to_af_array(lagrange.gauss_nodes(N_quad))
@@ -128,4 +130,6 @@ u          = af.constant(0, N_LGL, N_Elements, time.shape[0],\
                                  dtype = af.Dtype.f64)
 u[:, :, 0] = u_init
 
+#This matrix is used as an intermediate step to calculate the volume term while integrating
+b_matrix = lagrange.b_matrix_eval()
 

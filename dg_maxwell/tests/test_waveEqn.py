@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath('./'))
 import numpy as np
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 from dg_maxwell import params
 from dg_maxwell import lagrange
@@ -23,17 +23,13 @@ from dg_maxwell import utils
 
 def change_parameters(LGL, Elements, quad, wave='sin'):
     '''
-
     Changes the parameters of the simulation. Used only for convergence tests.
-
     Parameters
     ----------
     LGL      : int
                The new N_LGL.
-
     Elements : int
                The new N_Elements.
-
     '''
     # The domain of the function.
     params.x_nodes    = af.np_to_af_array(np.array([-1., 1.]))
@@ -50,6 +46,9 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
     # Array containing the LGL points in xi space.
     params.xi_LGL     = lagrange.LGL_points(params.N_LGL)
 
+    # The weights of the lgl points
+    params.weight_arr = lagrange.weight_arr_fun(params.xi_LGL)
+
     # N_Gauss number of Gauss nodes.
     params.gauss_points  = af.np_to_af_array(lagrange.gauss_nodes\
                                                     (params.N_quad))
@@ -62,6 +61,9 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
     # The lobatto weights to be used for integration.
     params.lobatto_weights_quadrature = lagrange.lobatto_weights\
                                         (params.N_quad)
+                                    
+    #The b matrix
+    params.b_matrix = lagrange.b_matrix_eval()
 
     # A list of the Lagrange polynomials in poly1d form.
     #params.lagrange_product = lagrange.product_lagrange_poly(params.xi_LGL)
@@ -114,7 +116,7 @@ def change_parameters(LGL, Elements, quad, wave='sin'):
 
 
     # The value of time-step.
-    params.delta_t = params.delta_x / (4 * abs(params.c))
+    params.delta_t = params.delta_x / (4 * params.c)
 
     # Array of timesteps seperated by delta_t.
     params.time    = utils.linspace(0, int(params.total_time / params.delta_t) * params.delta_t,

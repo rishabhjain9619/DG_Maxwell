@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.lines as lines
 import arrayfire as af
 
-af.set_backend('cpu')
-af.set_device(0)
+#af.set_backend('cpu')
+#af.set_device(0)
 
 def add(a, b):
     '''
