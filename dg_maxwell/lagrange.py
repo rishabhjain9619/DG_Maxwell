@@ -176,7 +176,6 @@ def gaussian_weights(N):
     gaussian_weight : arrayfire.Array [N_quad 1 1 1]
                       The gaussian weights.
     '''
-    index = np.arange(N) # Index `i` in `w_i`, varies from 0 to N_quad - 1
     
     gaussian_weight = np.polynomial.legendre.leggauss(N)[1]
     gaussian_weight = af.np_to_af_array(gaussian_weight)
@@ -452,6 +451,20 @@ def lagrange_interpolation(fn_i):
 
 def eval_lagrange_basis(point_arr, j):
     
+    '''
+    Finds the value of an array at
+    
+    Parameters
+    -------------
+    point_arr : numpy_array[N]
+                Contains the points at which you want to evaluate the basis value
+    j         : the value of the order of lagrange basis you want to evaluate
+    
+    Returns
+    -------
+    lagrange_interpolation : numpy_array[N]
+                             Contains the evaluated values
+    '''
     xi_lgl = np.asarray(params.xi_LGL)
     weight_arr = np.asarray(params.weight_arr)
     eval_point_arr = np.zeros(point_arr.size)
@@ -475,6 +488,18 @@ def eval_lagrange_basis(point_arr, j):
     return eval_point_arr
 
 def weight_arr_fun(xi_lgl):
+    '''
+    Finds the eights in the barycentric formulation
+    
+    Parameters
+    -------------
+    xi_lgl                 : lgl points    
+    
+    Returns
+    -------
+    weight_arr             : array containing weights
+    
+    '''
     xi_lgl = params.xi_LGL
     xi_lgl = np.asarray(xi_lgl)
     weight_arr = np.zeros(xi_lgl.size, dtype = np.float64)
@@ -488,6 +513,21 @@ def weight_arr_fun(xi_lgl):
 
 
 def eval_diff_lagrange_basis(lobatto_nodes, j):
+    '''
+    Finds the value of derivative of lagrange basis polynomials 
+    at the lobatto nodes
+    
+    Parameters
+    -------------
+    lobatto_nodes                 : lgl points    
+    j                             : order of the lagrange basis polynomial
+    
+    Returns
+    -------
+    eval_lobatto_nodes_diff       : array contining the value of derivative of lagrange
+                                    basis polynomial j
+    
+    '''
     xi_lgl = np.asarray(params.xi_LGL)
     weight_arr = np.asarray(params.weight_arr)
     eval_lobatto_nodes_diff = np.zeros(xi_lgl.size)
@@ -502,6 +542,19 @@ def eval_diff_lagrange_basis(lobatto_nodes, j):
 
 
 def b_matrix_eval():
+        '''
+    Finds the matrix helpful in calculating the volume_term 
+    by the barycentric formulation
+    
+    
+    Returns
+    -------
+    b_matrix       : matrix specified in the calculation of the b_matrix in 
+                     balavaruns's pdf.
+    
+    '''
+    
+    
     xi_lgl = np.asarray(params.xi_LGL)
     weight_arr = weight_arr_fun(xi_lgl)
     lobatto_nodes   = params.lobatto_quadrature_nodes
@@ -518,6 +571,20 @@ def b_matrix_eval():
     
 
 def eval_arr(point_arr, function_arr):
+    '''
+    Finds the interpolation of the point_arr when the value at lobatto_nodes
+    is given in the function_arr
+    
+    Parameters
+    -------------
+    point_arr                : points at which you want to calculate the interpolated value
+    function_arr             : value of the function at the lobatto points
+    
+    Returns
+    -------
+    point_eval_arr           : returns the evaluated interpolated array
+    
+    '''
     xi_lgl = np.asarray(params.xi_LGL)
     weight_arr = weight_arr_fun(xi_lgl)
     point_eval_arr = np.zeros(point_arr.size, dtype = np.float64)
@@ -538,4 +605,5 @@ def eval_arr(point_arr, function_arr):
         for i in range(0, function_arr.size):
             numer += (weight_arr[i]/(point_arr[j] - xi_lgl[i]))*(function_arr[i])
         point_eval_arr[j] = numer/denom
+        
     return point_eval_arr
