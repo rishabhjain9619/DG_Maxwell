@@ -148,6 +148,7 @@ def gauss_nodes(n):
 
     '''
     gauss_nodes = np.polynomial.legendre.leggauss(n)[0]
+
     
     return gauss_nodes
 
@@ -178,6 +179,7 @@ def gaussian_weights(N):
     index = np.arange(N) # Index `i` in `w_i`, varies from 0 to N_quad - 1
     
     gaussian_weight = np.polynomial.legendre.leggauss(N)[1]
+    gaussian_weight = af.np_to_af_array(gaussian_weight)
     
     return gaussian_weight
 
@@ -310,7 +312,7 @@ def integrate(integrand_coeffs):
     in params.py module.
     
     Parameters
-    #----------
+    ----------
     
     integrand_coeffs : arrayfire.Array [M N 1 1]
                        The coefficients of M number of polynomials of order N
@@ -321,7 +323,6 @@ def integrate(integrand_coeffs):
     Integral : arrayfire.Array [M 1 1 1]
                The value of the definite integration performed using the
                specified quadrature method for M polynomials.
-
     '''
 
 
@@ -360,6 +361,7 @@ def integrate(integrand_coeffs):
 
 
     return integral
+
 
 
 
