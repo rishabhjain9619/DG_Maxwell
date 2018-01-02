@@ -443,7 +443,7 @@ def time_evolution(u = None):
     '''
     Solves the wave equation
     
-    ..math: u^{t_n + 1} = b(t_n) \\times A
+    .. math:: u^{t_n + 1} = b(t_n) \\times A
     
     iterated over time.shape[0] time steps t_n 
     Second order time stepping is used.
@@ -459,7 +459,7 @@ def time_evolution(u = None):
 
     # Creating a folder to store hdf5 files. If it doesn't exist.
     results_directory = 'results/hdf5_%02d' %(int(params.N_LGL))
-            
+
     if not os.path.exists(results_directory):
         os.makedirs(results_directory)
 
@@ -473,7 +473,7 @@ def time_evolution(u = None):
                         d2 = shape_u_n[2])
 
     element_boundaries = af.np_to_af_array(params.np_element_array)
-    
+
     for t_n in trange(0, time.shape[0]):
         if (t_n % 20) == 0:
             h5file = h5py.File('results/hdf5_%02d/dump_timestep_%06d' %(int(params.N_LGL), int(t_n)) + '.hdf5', 'w')
@@ -482,7 +482,7 @@ def time_evolution(u = None):
             dset[:, :] = u[:, :]
 
         # Code for solving 1D Maxwell's Equations
-        ## Storing u at timesteps which are multiples of 100.
+        # Storing u at timesteps which are multiples of 100.
         #if (t_n % 5) == 0:
             #h5file = h5py.File('results/hdf5_%02d/dump_timestep_%06d' \
                 #%(int(params.N_LGL), int(t_n)) + '.hdf5', 'w')
@@ -494,46 +494,4 @@ def time_evolution(u = None):
             #Ez_dset[:, :] = u[:, :, 0]
             #By_dset[:, :] = u[:, :, 1]
 
-
-        # Implementing RK 4 scheme
         u += RK4_timestepping(A_inverse, u, delta_t)
-        
-    u_diff = E_z_B_y_diff(u, time[-1])
-    
-    return u_diff
-
-
-
-def mod_time_evolution(u = None):
-    '''
-    '''
-
-
-    element_LGL = params.element_LGL
-    delta_t     = params.delta_t
-    shape_u_n = utils.shape(u)
-    time        = params.time
-    A_inverse = af.tile(af.inverse(A_matrix()),
-                        d0 = 1, d1 = 1,
-                        d2 = shape_u_n[2])
-
-    element_boundaries = af.np_to_af_array(params.np_element_array)
-    
-    for t_n in trange(0, time.shape[0]):
-
-        u += RK4_timestepping(A_inverse, u, delta_t)
-    
-    return u
-
-
-def E_z_B_y_diff(u, t):
-    '''
-    '''
-    time_2   =  t[-1].to_array()
-    E_z_t    =  (np.cos(2*np.pi*time_2[0])-np.sin(2*np.pi*time_2[0]))*af.sin(2 * np.pi * params.element_LGL) + (np.cos(2*np.pi*time_2[0])+np.sin(2*np.pi*time_2[0]))*af.cos(2 * np.pi * params.element_LGL)
-    B_y_t    =  (np.cos(2*np.pi*time_2[0])-np.sin(2*np.pi*time_2[0]))*af.sin(2 * np.pi * params.element_LGL) + (np.cos(2*np.pi*time_2[0])+np.sin(2*np.pi*time_2[0]))*af.cos(2 * np.pi * params.element_LGL)
-    diff_E_z =  af.abs(E_z_t-u[:, :, 0])
-    diff_B_y =  af.abs(B_y_t-u[:, : ,1])
-    u_diff   =  af.join(2, diff_E_z, diff_B_y)
-    
-    return u_diff
